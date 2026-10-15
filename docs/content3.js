@@ -54,6 +54,7 @@ void main() {
 }` },
     { tip: 'ভালো function সাধারণত **return করে**, print করে না। কারণ return করলে ফল দিয়ে আরো কাজ করা যায়। print করার কাজ main এর।' },
     { h: 'Scope: কোন variable কোথায় দেখা যায়' },
+    { tip: 'এখানে শুধু এক নজর। global, local, block scope আর একই নামের গোলমাল বিস্তারিত [Scope টপিকে](#scope)।' },
     { code: `int counter = 0;   // বাইরের (global): সবাই দেখে
 
 void addOne() {
@@ -236,7 +237,7 @@ void main() {
 };
 
 TOPICS['parameters'] = {
-  short: 'Parameter এর ধরন', title: 'Parameter: positional, optional, named, required, default', days: 'দিন ৩–৪',
+  short: 'Parameter এর ধরন', title: 'Parameter: positional, optional, named, required, default', days: 'দিন ৩',
   goal: 'function এ মান পাঠানোর সব উপায় চেনা: কখন ক্রম লাগে, কখন নাম লাগে, কখন বাদ দেওয়া যায়।',
   learn: [
     'Dart এ parameter কয়েক রকম। Flutter এ সবচেয়ে বেশি লাগে **named parameter**, তাই এটা ভালো করে শেখো।',
@@ -1025,6 +1026,11 @@ TOPICS['list'] = {
   print(marks.last);         // 75
   print(marks.isEmpty);      // false
 }`, out: '80\n3\n[85, 92, 75]\ntrue\n2\n85\n75\nfalse' },
+    { h: 'মেমরিতে List: এক list, অনেক নাম' },
+    'List মেমরিতে একটা বড় বাক্স, যার ভেতরে সারি করে জিনিসগুলো। variable টা শুধু সেই বাক্সের দিকে **তীর**। তাই {{var b = a;}} নতুন list বানায় না, একই list এর দিকে দ্বিতীয় একটা তীর বানায়। আর String এর উল্টো, List **বদলানো যায়** ({{add}}, {{remove}}, {{list[0] = ...}})। এই দুইটা মিলে নতুনদের সবচেয়ে বেশি অবাক করে।',
+    { widget: 'memLab', arg: 'list' },
+    { table: [['লেখো', 'মেমরিতে কী হয়'], ['{{var b = a;}}', 'একই list, দুইটা নাম। একজন দিয়ে বদলালে অন্যজনও দেখে'], ['{{var b = [...a];}} বা {{List.of(a)}}', 'নতুন list, আলাদা কপি'], ['{{b.add(5)}}', 'list এর ভেতরে বদল, তীর একই জায়গায়'], ['{{b = [5]}}', 'তীর ঘোরানো, পুরানো list এ হাত দেয় না'], ['{{final b = [1]}}', 'তীর আটকানো, ভেতরে add চলে'], ['{{const b = [1]}}', 'তীর আর ভেতর দুইটাই আটকানো']] },
+    { warn: '{{[1, 2] == [1, 2]}} হলো **false**! List এর {{==}} দেখে একই list (একই ঠিকানা) কিনা, ভেতরের জিনিস না। জিনিস মেলাতে {{import \'package:collection/collection.dart\';}} করে {{ListEquality().equals(a, b)}}, অথবা নিজে loop দিয়ে।' },
     { h: 'loop দিয়ে List ঘোরা' },
     { code: `void main() {
   var names = ['Rafi', 'Mitu', 'Tanim'];

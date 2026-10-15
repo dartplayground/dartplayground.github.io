@@ -100,6 +100,35 @@
       ok(el.querySelectorAll('.sc-t tbody tr').length >= 1 && el.querySelectorAll('.sc-t tbody tr').length <= 3, 'shortcutLab: খোঁজা কাজ করেনি');
       ok(TOPICS.shortcuts.keys.every(k => k.vs.length === 3 && k.as.length === 3 && k.vs[0] !== undefined && k.as[0] !== undefined), 'shortcuts: কোনো সারিতে চাবি কম');
 
+      // scope এর বাক্স: ভেতরের বাক্সে ক্লিক করলে বাইরেরটা দেখা যায়, পাশেরটা না
+      go('scope'); el = $('.nest-root');
+      const inner = [...el.querySelectorAll('.nest')].find(n => n.querySelector('.nest-h').textContent.startsWith('if'));
+      inner.click();
+      const vis = n => el.querySelector(`.nv[data-name="${n}"]`)?.className || '';
+      ok(/see/.test(vis('highScore')) && /see/.test(vis('msg')) && /no/.test(vis('player')), 'nest: scope এর দৃশ্যমানতা ভুল');
+      // logic
+      go('logic'); el = $('[data-widget=logicLab]');
+      el.querySelector('[data-v=b]').click();   // b = true
+      ok(/true/.test(el.querySelector('[data-e="0"]').textContent), 'logicLab: a && b (দুইটাই true) true হয়নি');
+      el.querySelector('[data-e="8"]').click();
+      ok(el.querySelectorAll('.lg-table tbody tr').length === 8 && el.querySelectorAll('.lg-now').length === 1, 'logicLab: ৩ variable এর truth table ভুল');
+      // if এর পথ
+      go('if-else'); el = $('[data-widget=ifLab]');
+      el.querySelector('.if-k').value = 'sep'; el.querySelector('.if-k').dispatchEvent(new Event('change'));
+      ok(el.querySelector('.if-out').textContent.split('\n').length === 2, 'ifLab: আলাদা if এ marks 72 তে ২টা লাইন প্রিন্ট হয়নি');
+      // মেমরি: list এর alias, শেষ ধাপ পর্যন্ত
+      for (const [id, need] of [['variables', 2], ['strings-basic', 1], ['list', 3], ['null-safety', 3]]) {
+        go(id); el = $('[data-widget=memLab]');
+        ok(el && el.querySelectorAll('[data-s]').length === (need > 1 ? need : 0), `memLab ${id}: scenario সংখ্যা`);
+        let guard = 0; while (guard++ < 30) el.querySelector('[data-a=next]').click();
+        ok(el.querySelector('.mem-count').textContent.match(/([০-৯]+) \/ ([০-৯]+)/)?.slice(1).every((v, _, a) => v === a[1]), `memLab ${id}: শেষ ধাপে পৌঁছায়নি`);
+      }
+      go('list'); el = $('[data-widget=memLab]');
+      el.querySelector('[data-a=next]').click(); el.querySelector('[data-a=next]').click();
+      ok(el.querySelectorAll('.mem-var[data-to="#1"]').length === 2, 'memLab list: a আর b একই list দেখায়নি');
+      go('null-safety'); el = $('[data-widget=memLab]');
+      ok(el.querySelector('.mem-obj.null'), 'memLab null: null বাক্স দেখায়নি');
+
       // ▶ চালাও: dart কোডে বোতাম, চাপলে DartPad iframe
       go('setup');
       const run = $('#main [data-act=run]');

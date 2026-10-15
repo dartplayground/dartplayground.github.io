@@ -47,6 +47,8 @@ a { color: var(--accent); }
 button { font: inherit; color: inherit; cursor: pointer; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 h1, h2, h3 { font-family: var(--f-display); line-height: 1.25; text-wrap: balance; margin: 0; }
+/* কোডের ফন্টে >= কে ≥ বানানো বন্ধ: নতুনরা যেন হুবহু যা টাইপ করতে হবে তাই দেখে */
+code, pre, kbd, textarea, .mono, .tr-code, .term, .nv, .fc-b, .ss-item, .q .opts button { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
 code { font-family: var(--f-mono); font-size: .86em; background: var(--surface2); border: 1px solid var(--line); padding: .05em .35em; border-radius: 5px; }
 
 /* top bar */
@@ -254,6 +256,46 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 .sc-body { display: grid; gap: 6px; }
 .sc-body h4 { margin: 10px 0 2px; font-family: var(--f-display); font-size: 1.02rem; }
 .sc-t td:first-child { width: 48%; }
+.nest-root { display: grid; }
+.nest { border: 2px dashed var(--line); border-radius: 12px; padding: 8px 10px; margin-top: 8px; display: grid; gap: 6px; cursor: pointer; background: var(--surface); }
+.nest-root > .nest { margin-top: 0; }
+.nest[data-d="1"] { background: var(--surface2); } .nest[data-d="2"] { background: var(--surface); } .nest[data-d="3"] { background: var(--surface2); }
+.nest-h { font-family: var(--f-mono); font-size: .85rem; font-weight: 700; color: var(--muted); }
+.nest.here { border-style: solid; border-color: var(--accent); } .nest.here > .nest-h { color: var(--accent); }
+.nest.up { border-color: var(--teal); }
+.nest-v { display: flex; flex-wrap: wrap; gap: 6px; }
+.nv { font-size: .82rem; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface2); }
+.nv.see { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 600; }
+.nv.no { opacity: .45; }
+.nv.shadow { text-decoration: line-through; background: var(--warn-soft); border-color: var(--warn); }
+.tf { font-family: var(--f-mono); font-weight: 700; }
+.tf.y { color: var(--ok); } .tf.n { color: var(--bad); }
+.lg-v.on { border-color: var(--ok); }
+.lg-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px; }
+.lg-e { text-align: left; border: 1px solid var(--line); background: var(--surface2); border-radius: 8px; padding: 6px 10px; }
+.lg-e.sel { border-color: var(--accent); background: var(--accent-soft); }
+.lg-now td { background: var(--warn-soft); font-weight: 700; }
+.if-rows { display: grid; gap: 6px; }
+.if-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface2); }
+.if-row.yes { border-color: var(--ok); background: var(--ok-soft); }
+.if-row.no { border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+.if-row.skip { opacity: .45; }
+.if-row span { font-size: .85rem; color: var(--muted); }
+.mem-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px; }
+.mem-wrap { position: relative; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1fr); gap: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--surface2); min-height: 120px; }
+.mem-svg { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.mem-col .label { font-size: .72rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+.mem-list { display: grid; gap: 10px; align-content: start; }
+.mem-var { border: 2px solid; border-radius: 8px; padding: 4px 10px; background: var(--surface); display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.mem-var small { color: var(--muted); font-size: .72rem; }
+.mem-obj { border: 2px solid; border-radius: 10px; padding: 4px 10px; background: var(--surface); display: grid; overflow-wrap: anywhere; }
+.mem-obj small { color: var(--muted); font-size: .72rem; }
+.mem-obj.null { border-style: dashed; border-color: var(--muted); background: transparent; }
+.mem-var.ch, .mem-obj.ch { box-shadow: 0 0 0 3px var(--warn-soft); }
+.mem-obj.gone { opacity: .5; border-style: dotted; }
+.mem-obj .gone-l { color: var(--bad); }
+.mem-err { background: var(--bad-soft); color: var(--bad); border-radius: 8px; padding: 8px 12px; }
+@media (max-width: 860px) { .mem-grid { grid-template-columns: minmax(0, 1fr); } .if-row { grid-template-columns: minmax(0, 1fr) auto; } .if-row span { grid-column: 1 / -1; } }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -400,18 +442,20 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/powershell.min.js"></script>
 <script>const TOPICS = {}, TRACES = {}, CARDS = [];</script>
-<script src="content1.js?v=309c01e0"></script>
-<script src="content2.js?v=4c554eba"></script>
-<script src="content3.js?v=017c042d"></script>
+<script src="content1.js?v=6bb37459"></script>
+<script src="content2.js?v=585c2454"></script>
+<script src="content3.js?v=58069010"></script>
 <script src="content4.js?v=991710f4"></script>
 <script src="content5.js?v=47466842"></script>
 <script src="content6.js?v=d93e70c4"></script>
 <script src="content7.js?v=961c4c43"></script>
-<script src="content8.js?v=aba4b60c"></script>
+<script src="content8.js?v=2546c7fe"></script>
 <script src="content9.js?v=c57b9215"></script>
 <script src="content10.js?v=e3d199d4"></script>
 <script src="content11.js?v=2ecec182"></script>
 <script src="content12.js?v=2142b3ce"></script>
-<script src="app.js?v=c11b01c4"></script>
+<script src="content13.js?v=186ace0d"></script>
+<script src="content14.js?v=04a723fd"></script>
+<script src="app.js?v=92fe938f"></script>
 </body>
 </html>

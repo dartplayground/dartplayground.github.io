@@ -3,10 +3,10 @@ const WEEKS = [
   // কোড শুরুর আগের প্রস্তুতি: সূচিতে সবার উপরে। pos: 'start' মানে রোডম্যাপেও সপ্তাহ ১ এর আগে
   { n: 's', label: 'শুরুর আগে', pos: 'start', title: 'কোড লেখার আগের প্রস্তুতি: কিবোর্ড, VS Code, ইংরেজি শব্দ, সাহায্য চাওয়া', ids: ['vscode', 'glossary', 'help'] },
   { n: 1, title: 'ভাবতে শেখা, Output, Variable, String', ids: ['think', 'setup', 'variables', 'strings-basic'] },
-  { n: 2, title: 'অপারেটর, Input আর Null', ids: ['operators', 'conversion', 'null-safety'] },
+  { n: 2, title: 'অপারেটর, Logic, Input আর Null', ids: ['operators', 'logic', 'conversion', 'null-safety'] },
   { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'switch-ternary'] },
   { n: 4, title: 'Loop আর Bug খোঁজা', ids: ['for-loop', 'while-loop', 'nested-loop', 'debugging'] },
-  { n: 5, title: 'Function আর Recursion', ids: ['functions-basic', 'parameters', 'arrow-function', 'recursion'] },
+  { n: 5, title: 'Function, Scope আর Recursion', ids: ['functions-basic', 'parameters', 'scope', 'arrow-function', 'recursion'] },
   { n: 6, title: 'List, Set, Map, Math আর Test', ids: ['list', 'set-map', 'math-date', 'testing'] },
   { n: 7, title: 'Anonymous function আর Collection method', ids: ['anonymous', 'higher-order-closure', 'collection-methods'] },
   { n: 8, title: 'String, Algorithm আর Logic Gym', ids: ['string-problems', 'algorithms', 'logic-gym'] },
@@ -105,9 +105,33 @@ function block(b, lang) {
   if (b.anat) return `<div class="vis"><div class="cap">${fmt(b.cap || '')}</div><div class="anat">${b.anat.map(([t, d], i) => `<span class="a${(i % 4) + 1}"><i>${esc(t)}</i><small>${esc(d)}</small></span>`).join('')}</div></div>`;
   if (b.objs) return `<div class="vis"><div class="cap">${fmt(b.cap || '')}</div><div class="objs"><div class="blue"><b>class ${esc(b.objs.cls)}</b>${b.objs.fields.map(esc).join('<br>')}</div><span class="arrow">→</span>${b.objs.items.map((o, k) => `<div class="obj"><b>${esc(o[0])}</b>${b.objs.fields.map((f, j) => `${esc(f.split(' ').pop())}: ${esc(o[j + 1])}`).join('<br>')}</div>`).join('')}</div></div>`;
   if (b.tree) return `<div class="vis"><div class="cap">${fmt(b.cap || '')}</div><div class="tree"><span class="nd">${esc(b.tree[0])}</span><span class="arrow">↓ extends</span><div class="kids">${b.tree[1].map(k => `<span class="nd">${esc(k)}</span>`).join('')}</div></div></div>`;
-  if (b.widget) return `<div data-widget="${b.widget}"></div>`;
+  if (b.nest) return `<div class="vis"><div class="cap">${fmt(b.cap || 'যেকোনো বাক্সে ক্লিক করো: সেখান থেকে কোন variable দেখা যায়?')}</div><div class="nest-root">${nestBox(b.nest)}</div><p class="tr-note nest-msg">একটা বাক্সে ক্লিক করো।</p></div>`;
+  if (b.widget) return `<div data-widget="${b.widget}" data-arg="${esc(b.arg || '')}"></div>`;
   if (b.trace) return `<div data-trace="${b.trace}"></div>`;
   return '';
+}
+
+// scope এর ছবি: বাক্সের ভেতরে বাক্স। { n: নাম, v: ['int x = 1', ...], k: [ভেতরের বাক্স] }
+const varName = d => d.split('=')[0].trim().split(/\s+/).pop();
+const nestBox = (b, d = 0) => `<div class="nest" data-d="${d}"><div class="nest-h">${esc(b.n)}</div>${(b.v || []).length ? `<div class="nest-v">${b.v.map(x => `<span class="nv mono" data-name="${esc(varName(x))}">${esc(x)}</span>`).join('')}</div>` : ''}${(b.k || []).map(k => nestBox(k, d + 1)).join('')}</div>`;
+// ক্লিক করা বাক্স আর তার বাইরের বাক্সগুলোর variable দেখা যায়। একই নাম ভেতরে থাকলে বাইরেরটা ঢাকা পড়ে
+function nestClick(box) {
+  const root = box.closest('.nest-root'), msg = root.parentElement.querySelector('.nest-msg');
+  root.querySelectorAll('.nest').forEach(n => n.classList.remove('here', 'up'));
+  root.querySelectorAll('.nv').forEach(v => v.className = 'nv mono no');
+  const seen = new Set(), see = [], hid = [];
+  for (let n = box; n && n !== root; n = n.parentElement.closest('.nest')) {
+    n.classList.add(n === box ? 'here' : 'up');
+    n.querySelector(':scope > .nest-v')?.querySelectorAll('.nv').forEach(v => {
+      const nm = v.dataset.name;
+      if (seen.has(nm)) { v.className = 'nv mono shadow'; hid.push(nm); } else { v.className = 'nv mono see'; seen.add(nm); see.push(nm); }
+    });
+  }
+  // দেখা যায় না এমন নামের পাশে কোন বাক্সের, যাতে একই নামের দুইটা আলাদা variable গুলিয়ে না যায়
+  const no = [...root.querySelectorAll('.nv.no')].map(v => `${v.dataset.name} (${v.closest('.nest').querySelector('.nest-h').textContent.replace(/[({].*$/, '').trim()} এর)`);
+  msg.innerHTML = `<b>${esc(box.querySelector('.nest-h').textContent)}</b> এর ভেতর থেকে দেখা যায়: ${see.length ? see.map(x => `<code>${esc(x)}</code>`).join(' ') : 'কিছুই না'}` +
+    (hid.length ? `<br>ঢাকা পড়েছে (ভেতরে একই নাম আছে, তাই বাইরেরটা দেখা যায় না): ${hid.map(x => `<code>${esc(x)}</code>`).join(' ')}` : '') +
+    (no.length ? `<br>দেখা যায় না: ${no.map(x => `<code>${esc(x)}</code>`).join(' ')}` : '');
 }
 
 // ---------- sidebar & meter ----------
@@ -1023,6 +1047,137 @@ const W = {
 
   psLab(el) { W.termLab(el, 'ps'); },
 
+  // && || ! খেলা: a, b, c বদলাও, সব হিসাব সাথে সাথে। একটা বেছে নিলে পুরো truth table, এখনকার সারি রঙিন
+  logicLab(el) {
+    const EX = [['a && b', (a, b) => a && b], ['a || b', (a, b) => a || b], ['!a', a => !a], ['!(a && b)', (a, b) => !(a && b)], ['!a || !b', (a, b) => !a || !b],
+      ['!(a || b)', (a, b) => !(a || b)], ['!a && !b', (a, b) => !a && !b], ['a != b', (a, b) => a !== b], ['a && b || c', (a, b, c) => a && b || c], ['a && (b || c)', (a, b, c) => a && (b || c)]];
+    const st = { a: true, b: false, c: false }; let sel = 0;
+    el.innerHTML = `<div class="widget"><div class="w-title">Logic ল্যাব</div>
+      <p>${fmt('a, b, c এর উপর ক্লিক করে true / false বদলাও। নিচের কোনো হিসাবে ক্লিক করলে তার পুরো **truth table** দেখাবে, এখনকার অবস্থার সারিটা রঙিন।')}</p>
+      <div class="w-row lg-vars"></div><div class="lg-list"></div><div class="lg-table"></div></div>`;
+    const tf = v => `<b class="tf ${v ? 'y' : 'n'}">${v}</b>`;
+    const draw = () => {
+      $('.lg-vars', el).innerHTML = ['a', 'b', 'c'].map(k => `<button class="btn lg-v ${st[k] ? 'on' : ''}" data-v="${k}"><span class="mono">${k} = </span>${tf(st[k])}</button>`).join('');
+      $('.lg-list', el).innerHTML = EX.map(([t, f], i) => `<button class="lg-e ${i === sel ? 'sel' : ''}" data-e="${i}"><code>${esc(t)}</code> → ${tf(f(st.a, st.b, st.c))}</button>`).join('');
+      const [t, f] = EX[sel], useC = t.includes('c'), useB = t.includes('b'), rows = [];
+      for (const a of [true, false]) for (const b of useB ? [true, false] : [st.b]) for (const c of useC ? [true, false] : [st.c]) rows.push([a, b, c]);
+      $('.lg-table', el).innerHTML = `<div class="tablewrap"><table class="t"><thead><tr><th>a</th>${useB ? '<th>b</th>' : ''}${useC ? '<th>c</th>' : ''}<th class="mono">${esc(t)}</th></tr></thead><tbody>${rows.map(([a, b, c]) => `<tr class="${a === st.a && (!useB || b === st.b) && (!useC || c === st.c) ? 'lg-now' : ''}"><td>${tf(a)}</td>${useB ? `<td>${tf(b)}</td>` : ''}${useC ? `<td>${tf(c)}</td>` : ''}<td>${tf(f(a, b, c))}</td></tr>`).join('')}</tbody></table></div>`;
+    };
+    el.onclick = e => {
+      const v = e.target.closest('[data-v]'), x = e.target.closest('[data-e]');
+      if (v) st[v.dataset.v] = !st[v.dataset.v]; else if (x) sel = +x.dataset.e; else return;
+      draw();
+    };
+    draw();
+  },
+
+  // if-else এর পথ: নম্বর বদলাও, দেখো কোন শর্ত true হলো, কোথায় ঢুকলো, কোনগুলো দেখাই হলো না
+  ifLab(el) {
+    const SC = {
+      chain: { name: 'else if শৃঙ্খল (ঠিক ক্রম)', chain: true, rows: [['marks >= 80', m => m >= 80, 'A+'], ['marks >= 60', m => m >= 60, 'A'], ['marks >= 33', m => m >= 33, 'পাস'], [null, () => true, 'ফেল']] },
+      wrong: { name: 'else if শৃঙ্খল (ভুল ক্রম!)', chain: true, rows: [['marks >= 33', m => m >= 33, 'পাস'], ['marks >= 60', m => m >= 60, 'A'], ['marks >= 80', m => m >= 80, 'A+'], [null, () => true, 'ফেল']] },
+      sep: { name: 'আলাদা আলাদা if (else ছাড়া)', chain: false, rows: [['marks >= 80', m => m >= 80, 'A+'], ['marks >= 60', m => m >= 60, 'A'], ['marks >= 33', m => m >= 33, 'পাস']] },
+    };
+    let k = 'chain', m = 72;
+    el.innerHTML = `<div class="widget"><div class="w-title">শর্তের পথ</div>
+      <div class="w-row"><select class="if-k">${Object.entries(SC).map(([key, v]) => `<option value="${key}">${v.name}</option>`).join('')}</select>
+      <label>marks = <input class="if-m" type="range" min="0" max="100" value="${m}" style="width:10em"><b class="if-mv mono">${m}</b></label></div>
+      <div class="if-rows"></div><div class="if-code"></div><div class="tr-box"><div class="label">OUTPUT</div><pre class="tr-out if-out"></pre></div><p class="tr-note if-note"></p></div>`;
+    const draw = () => {
+      const sc = SC[k], out = []; let hit = -1;
+      const rows = sc.rows.map(([c, f, p], i) => {
+        if (sc.chain && hit >= 0) return ['skip', c, p];
+        const t = f(m);
+        if (t) { out.push(p); if (sc.chain) hit = i; return ['yes', c, p]; }
+        return ['no', c, p];
+      });
+      const LBL = { yes: 'true → ঢুকলো, প্রিন্ট', no: 'false → পরেরটা দেখো', skip: 'দেখাই হলো না' };
+      $('.if-rows', el).innerHTML = rows.map(([st, c, p], i) => `<div class="if-row ${st}"><code>${c ? `${i && sc.chain ? '} else if' : 'if'} (${esc(c)})` : '} else'}</code><span>${c || st !== 'yes' ? LBL[st] : 'বাকি কোনোটা মেলেনি → else'}</span><b>${esc(p)}</b></div>`).join('');
+      const code = sc.rows.map(([c, , p], i) => c ? `${i && sc.chain ? '} else if' : (i ? '}\nif' : 'if')} (${c}) {\n  print('${p}');` : `} else {\n  print('${p}');`).join('\n') + '\n}';
+      $('.if-code', el).innerHTML = codeBlock(`int marks = ${m};\n${code}`);
+      $('.if-out', el).textContent = out.join('\n') || '(কিছুই প্রিন্ট হয়নি)';
+      $('.if-note', el).innerHTML = k === 'wrong' && m >= 60 ? `<b>Bug!</b> ${m} পেয়েও "পাস" দেখাচ্ছে, কারণ প্রথম শর্তেই true হয়ে থেমে গেছে। বড় শর্ত আগে দিতে হয়।`
+        : k === 'sep' && out.length > 1 ? `<b>খেয়াল করো:</b> else নেই বলে প্রতিটা if আলাদা করে চেক হলো, তাই ${bn(out.length)}টা লাইন প্রিন্ট হলো। একটাই চাইলে else if লাগবে।`
+        : sc.chain ? 'একটা শৃঙ্খলে সর্বোচ্চ একটা ব্লক চলে। প্রথম true পেলেই বাকিগুলো আর দেখাই হয় না।' : 'আলাদা if গুলো একটা আরেকটার উপর নির্ভর করে না, সবগুলোই চেক হয়।';
+    };
+    $('.if-k', el).onchange = e => { k = e.target.value; draw(); };
+    $('.if-m', el).oninput = e => { m = +e.target.value; $('.if-mv', el).textContent = m; draw(); };
+    draw();
+  },
+
+  // মেমরি দেখো: বামে নাম (variable), ডানে মেমরিতে আসল জিনিস (object), মাঝে তীর।
+  // তালিকা আসে TOPICS[arg].mem থেকে। ধাপ: { l, n, set: {নাম: ঠিকানা | 'null'}, ty: {নাম: type}, obj: {ঠিকানা: [type, মান]}, mut: {ঠিকানা: মান}, p, err }
+  memLab(el) {
+    const list = TOPICS[el.dataset.arg]?.mem || []; if (!list.length) return;
+    let sc = 0, i = 0;
+    const COL = ['#0B857C', '#0466AE', '#B3302D', '#915C00', '#7A3FB0', '#1B7A4B'];
+    el.innerHTML = `<div class="widget"><div class="w-title">মেমরি দেখো</div>
+      ${list.length > 1 ? `<div class="w-row">${list.map((x, k) => `<button class="chip" data-s="${k}">${esc(x.title)}</button>`).join('')}</div>` : `<b>${esc(list[0].title)}</b>`}
+      <div class="mem-grid"><pre class="tr-code mem-code"></pre>
+        <div class="mem-wrap"><svg class="mem-svg" aria-hidden="true"></svg><div class="mem-col mem-names"><div class="label">নাম (variable)</div><div class="mem-list mem-vars"></div></div><div class="mem-col"><div class="label">মেমরি (আসল জিনিস)</div><div class="mem-list mem-objs"></div></div></div></div>
+      <div class="mem-err" hidden></div><div class="tr-box"><div class="label">OUTPUT</div><pre class="tr-out mem-out"></pre></div>
+      <p class="tr-note mem-note"></p>
+      <div class="tr-ctrl"><button class="btn" data-a="prev">← আগের ধাপ</button><button class="btn primary" data-a="next">পরের ধাপ →</button><button class="btn" data-a="reset">শুরু থেকে</button><span class="tr-count mem-count"></span></div></div>`;
+    const state = () => {
+      const S = list[sc], vars = new Map(), types = {}, objs = new Map(), out = [];
+      let gone = new Set(), err = '';
+      for (let k = 0; k <= i; k++) {
+        const st = S.steps[k];
+        gone.forEach(a => objs.delete(a));                      // আগের ধাপের garbage এখন মুছে গেছে
+        Object.entries(st.obj || {}).forEach(([a, [t, v]]) => objs.set(a, { t, v, ch: k === i }));
+        Object.entries(st.mut || {}).forEach(([a, v]) => { const o = objs.get(a); if (o) objs.set(a, { ...o, v, ch: k === i }); });
+        Object.entries(st.ty || {}).forEach(([n, t]) => types[n] = t);
+        Object.entries(st.set || {}).forEach(([n, a]) => { vars.delete(n); if (a !== undefined) vars.set(n, { a, ch: k === i }); });
+        (st.del || []).forEach(n => vars.delete(n));
+        if (st.p !== undefined) out.push(st.p);
+        err = st.err || '';
+        const used = new Set([...vars.values()].map(v => v.a));
+        gone = new Set([...objs.keys()].filter(a => !used.has(a)));
+      }
+      if (i < S.steps.length) { /* শেষ ধাপের garbage দেখাই, মুছি না */ }
+      return { S, vars, types, objs, out, gone, err };
+    };
+    const color = a => a === 'null' ? 'var(--muted)' : COL[(parseInt(String(a).replace(/\D/g, '')) || 0) % COL.length];
+    const arrows = () => {
+      const wrap = $('.mem-wrap', el), svg = $('.mem-svg', el); if (!wrap.isConnected) return;
+      const r = wrap.getBoundingClientRect();
+      svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`); svg.setAttribute('width', r.width); svg.setAttribute('height', r.height);
+      svg.innerHTML = [...el.querySelectorAll('.mem-var[data-to]')].map(v => {
+        const t = el.querySelector(`.mem-obj[data-addr="${v.dataset.to}"]`); if (!t) return '';
+        const a = v.getBoundingClientRect(), b = t.getBoundingClientRect();
+        const x1 = a.right - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - r.left - 4, y2 = b.top + Math.min(b.height / 2, 22) - r.top, mx = (x1 + x2) / 2;
+        const c = color(v.dataset.to);
+        return `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${c}" stroke-width="2.2"/><circle cx="${x2}" cy="${y2}" r="4" fill="${c}"/>`;
+      }).join('');
+    };
+    const draw = () => {
+      const { S, vars, types, objs, out, gone, err } = state(), st = S.steps[i];
+      el.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', +b.dataset.s === sc));
+      $('.mem-code', el).innerHTML = S.code.map((l, k) => `<span class="tr-line ${k === st.l ? 'cur' : ''}"><span class="ln">${k + 1}</span>${l ? hl(l) : ' '}</span>`).join('');
+      $('.mem-vars', el).innerHTML = [...vars].map(([n, v]) => `<div class="mem-var ${v.ch ? 'ch' : ''}" data-to="${esc(v.a)}" style="border-color:${color(v.a)}"><b class="mono">${esc(n)}</b>${types[n] ? `<small class="mono">${esc(types[n])}</small>` : ''}</div>`).join('') || '<span class="goal">এখনো কোনো নাম নেই</span>';
+      const hasNull = [...vars.values()].some(v => v.a === 'null');
+      $('.mem-objs', el).innerHTML = (hasNull ? `<div class="mem-obj null" data-addr="null"><small>null</small><b class="mono">কিছুই না</b></div>` : '') +
+        [...objs].map(([a, o]) => `<div class="mem-obj ${o.ch ? 'ch' : ''} ${gone.has(a) ? 'gone' : ''}" data-addr="${esc(a)}" style="border-color:${color(a)}"><small><span class="mono">${esc(a)}</span> · ${esc(o.t)}</small><b class="mono">${esc(o.v)}</b>${gone.has(a) ? '<small class="gone-l">কেউ দেখছে না → garbage, মুছে যাবে</small>' : ''}</div>`).join('');
+      $('.mem-out', el).textContent = out.join('\n');
+      const e = $('.mem-err', el); e.hidden = !err; e.innerHTML = err ? `<b>Error!</b> ${fmt(err)}` : '';
+      $('.mem-note', el).innerHTML = fmt(st.n);
+      $('.mem-count', el).textContent = `ধাপ ${bn(i + 1)} / ${bn(S.steps.length)}`;
+      requestAnimationFrame(arrows);
+    };
+    el.onclick = e => {
+      const s = e.target.closest('[data-s]'), a = e.target.closest('[data-a]')?.dataset.a;
+      if (s) { sc = +s.dataset.s; i = 0; }
+      else if (a === 'next' && i < list[sc].steps.length - 1) i++;
+      else if (a === 'prev' && i > 0) i--;
+      else if (a === 'reset') i = 0;
+      else return;
+      draw();
+    };
+    const ro = window.ResizeObserver ? new ResizeObserver(() => el.isConnected ? arrows() : ro.disconnect()) : null;
+    ro?.observe($('.mem-wrap', el));
+    draw();
+  },
+
   // Shortcut পাতা: editor (VS Code / Android Studio / দুইটা) আর কম্পিউটার (Windows / Linux / Mac) বেছে নাও
   shortcutLab(el) {
     const K = TOPICS.shortcuts?.keys || [];
@@ -1476,6 +1631,7 @@ $('#main').addEventListener('click', e => {
     w.innerHTML = (+t.dataset.j === qq.a ? '<b>ঠিক!</b> ' : '<b>হয়নি।</b> ') + fmt(qq.why);
   }
 });
+$('#main').addEventListener('click', e => { const n = e.target.closest('.nest'); if (n) nestClick(n); });
 $('#main').addEventListener('change', e => {
   if (e.target.dataset.act === 'import') return importProgress(e.target);
   if (e.target.dataset.act !== 'done') return;

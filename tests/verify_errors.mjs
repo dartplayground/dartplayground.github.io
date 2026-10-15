@@ -21,6 +21,8 @@ const FILE = {
   'potentially null': 'c_potentially_null', 'must be assigned before it can be used': 'c_unassigned', 'positional arguments': 'c_positional',
   'Required named parameter': 'c_required_named', 'must be returned': 'c_return', "Can't assign to the final variable": 'c_final',
   'Missing concrete implementation': 'c_abstract',
+  'already declared in this scope': 'c_already_declared', "can't be referenced before it is declared": 'c_before_declared',
+  "comparison expression can't be an operand": 'c_comparison_chain', "int can't be assigned to bool": 'c_int_to_bool',
 };
 
 let fail = 0;
