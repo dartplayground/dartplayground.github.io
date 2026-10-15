@@ -13,7 +13,7 @@ const WEEKS = [
   { n: 11, title: 'JSON, Async, Stream, Isolate', ids: ['json', 'async', 'streams', 'isolates'] },
   { n: 12, title: 'Mini Project', ids: ['projects'] },
   // সপ্তাহের বাইরে: যার যখন দরকার পড়বে। n দিয়ে flashcard এর CARDS.w মেলে
-  { n: 'x', label: 'Extra', title: 'Terminal, Compile আর Error অভিধান: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'dart-compile', 'errors'] },
+  { n: 'x', label: 'Extra', title: 'Terminal, Git, Compile আর Error অভিধান: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'git', 'dart-compile', 'errors'] },
 ];
 
 // সমস্যার লেখায় এই শব্দগুলো থাকলে "কিভাবে ভাববো?" প্যানেলে সূত্র দেখায়
@@ -976,6 +976,250 @@ const W = {
       kind = b.dataset.k; el.querySelectorAll('[data-k]').forEach(c => c.classList.toggle('on', c === b)); draw();
     };
     draw();
+  },
+
+  // নকল Git: পাশাপাশি ৩টা ঘর: কাজের ফোল্ডার → staging → commit (অ্যালবাম)। ফাইলের লেখা = লাইনের list
+  gitLab(el) {
+    let S, edits, restored;
+    const fresh = () => ({
+      init: false, head: 'main', branches: { main: null }, commits: [], index: {}, remote: null, pushed: {}, upstream: {},
+      work: { 'hello.dart': ['void main() {', "  print('আমার গেম');", '}'], 'README.md': ['# আমার প্রথম গেম'] },
+    });
+    const MIS = [
+      ['{{git init}}: অ্যালবাম খোলো', () => S.init],
+      ['{{git status}}: অবস্থা জিজ্ঞেস করো', c => c[1] === 'status' && S.init],
+      ['{{git add .}}: সব ফাইল ফ্রেমে আনো', () => S.init && Object.keys(S.work).length && Object.keys(S.work).every(n => eq(S.index[n], S.work[n]))],
+      ['প্রথম ছবি: {{git commit -m "প্রথম কোড"}}', () => S.commits.length >= 1],
+      ['{{edit hello.dart}} দিয়ে কোড বদলাও, তারপর {{git diff}} দিয়ে দেখো কী বদলালো', c => c[1] === 'diff' && unstaged().length > 0],
+      ['বদলটা add আর commit করো (দ্বিতীয় ছবি)', () => S.commits.length >= 2],
+      ['{{git log --oneline}}: অ্যালবাম উল্টাও', c => c[1] === 'log' && S.commits.length > 0],
+      ['ইচ্ছা করে কোড নষ্ট করো ({{edit}}), তারপর {{git restore hello.dart}} দিয়ে ফেরত আনো', () => restored],
+      ['{{git switch -c experiment}}: খসড়া খাতা খোলো, সেখানে একটা commit করো', () => S.commits.some(c => c.br === 'experiment')],
+      ['{{git switch main}} এ ফিরে {{git merge experiment}} দিয়ে খসড়া মূল খাতায় আনো', () => S.branches.main && ancestors(S.branches.main).some(id => byId(id).br === 'experiment')],
+    ];
+    el.innerHTML = `<div class="widget"><div class="w-title">নকল Git</div>
+      <p>${fmt('নিচের terminal এ git command লেখো, আর পাশের ঘরগুলোতে দেখো ফাইল কোথায় যাচ্ছে। কোড বদলানোর জন্য বিশেষ command: {{edit hello.dart}}। সব command দেখতে {{help}}।')}</p>
+      <div class="git-viz"></div>
+      <div class="term"><div class="term-out"></div><label class="term-in"><span class="ps"></span><input spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="command লেখো"></label></div>
+      <div class="term-mis"><b>মিশন</b> (গল্পের ক্রমে)<ol>${MIS.map(m => `<li>${fmt(m[0])}</li>`).join('')}</ol></div>
+      <div class="w-row"><button class="btn" data-t="reset">শুরু থেকে</button></div></div>`;
+    const out = $('.term-out', el), inp = $('input', el), ps = $('.term-in .ps', el), viz = $('.git-viz', el), lis = el.querySelectorAll('.term-mis li');
+
+    const eq = (a, b) => (a === undefined && b === undefined) || (!!a && !!b && a.join('\n') === b.join('\n'));
+    const copy = t => Object.fromEntries(Object.entries(t).map(([k, v]) => [k, [...v]]));
+    const byId = id => S.commits.find(c => c.id === id);
+    const headId = () => S.branches[S.head];
+    const tree = id => id ? byId(id).tree : {};
+    const ancestors = id => { const seen = [], q = id ? [id] : []; while (q.length) { const x = q.shift(); if (seen.includes(x)) continue; seen.push(x); const c = byId(x); if (c.parent) q.push(c.parent); if (c.parent2) q.push(c.parent2); } return seen; };
+    const names = (...ts) => [...new Set(ts.flatMap(t => Object.keys(t)))].sort();
+    const staged = () => names(S.index, tree(headId())).filter(n => !eq(S.index[n], tree(headId())[n])).map(n => [!tree(headId())[n] ? 'new file' : !S.index[n] ? 'deleted' : 'modified', n]);
+    const unstaged = () => Object.keys(S.index).filter(n => !eq(S.work[n], S.index[n])).map(n => [!S.work[n] ? 'deleted' : 'modified', n]);
+    const untracked = () => Object.keys(S.work).filter(n => !(n in S.index)).sort();
+    const newId = msg => { let h = 2166136261; for (const ch of msg + S.commits.length + Date.now()) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0; return h.toString(16).padStart(8, '0').slice(0, 7); };
+    const labels = id => [...(S.branches[S.head] === id ? [`HEAD -> ${S.head}`] : []), ...Object.entries(S.branches).filter(([b, c]) => c === id && b !== S.head).map(([b]) => b), ...Object.entries(S.pushed).filter(([, c]) => c === id).map(([b]) => 'origin/' + b)];
+    const prompt = () => `rafi@pc:~/my_app${S.init ? ` (${S.head})` : ''}$`;
+    const print = (html, cls = '') => { const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = html; out.append(d); while (out.children.length > 300) out.firstChild.remove(); };
+    const say = (t, cls) => print(esc(t), cls), err = t => say(t, 'err');
+
+    const draw = () => {
+      const st = Object.fromEntries(staged().map(([t, n]) => [n, t])), un = Object.fromEntries(unstaged().map(([t, n]) => [n, t])), ut = untracked();
+      const tag = (t, c) => `<span class="gtag ${c}">${t}</span>`;
+      const work = names(S.work, S.index).map(n => `<li><span class="mono">${esc(n)}</span>${!S.init ? '' : ut.includes(n) ? tag('নতুন, Git চেনে না', 'new') : un[n] === 'deleted' ? tag('মুছে গেছে', 'del') : un[n] ? tag('বদলেছে', 'mod') : tag('ছবির সাথে মিলে আছে', 'ok')}</li>`).join('');
+      const stg = Object.entries(st).map(([n, t]) => `<li><span class="mono">${esc(n)}</span>${tag({ 'new file': 'নতুন', modified: 'বদল', deleted: 'মোছা' }[t], t === 'deleted' ? 'del' : 'new')}</li>`).join('');
+      const cm = ancestors(headId()).concat(S.commits.map(c => c.id).filter(id => !ancestors(headId()).includes(id))).map(byId)
+        .sort((a, b) => b.n - a.n).map(c => `<li class="${ancestors(headId()).includes(c.id) ? '' : 'off'}"><span class="mono gid">${c.id}</span> ${esc(c.msg)}${labels(c.id).map(l => ` ${tag(esc(l), l.startsWith('HEAD') ? 'head' : l.startsWith('origin') ? 'remote' : 'br')}`).join('')}</li>`).join('');
+      viz.innerHTML = `<div class="gbox"><b>১. কাজের ফোল্ডার</b><small>তুমি এখন যা লিখছো</small><ul>${work || '<li class="off">খালি</li>'}</ul></div>
+        <div class="garrow">git add</div>
+        <div class="gbox"><b>২. Staging (ফ্রেম)</b><small>পরের ছবিতে যা যাবে</small><ul>${!S.init ? '<li class="off">আগে git init</li>' : stg || '<li class="off">ফ্রেম খালি</li>'}</ul></div>
+        <div class="garrow">git commit</div>
+        <div class="gbox"><b>৩. Commit (অ্যালবাম)</b><small>তোলা ছবিগুলো, নতুনটা উপরে</small><ul>${!S.init ? '<li class="off">আগে git init</li>' : cm || '<li class="off">এখনো কোনো ছবি নেই</li>'}</ul></div>`;
+      ps.textContent = prompt();
+    };
+
+    // ফাইল বদল: hello.dart এ শেষ } এর আগে নতুন print, অন্য ফাইলে শেষে নতুন লাইন
+    const edit = n => {
+      if (!S.work[n]) return err(`edit: '${n}' নামে ফাইল নেই। ls দিয়ে দেখো কী আছে।`);
+      edits++;
+      const f = S.work[n];
+      if (n.endsWith('.dart') && f[f.length - 1] === '}') f.splice(f.length - 1, 0, `  print('নতুন লাইন ${edits}');`);
+      else f.push(`নতুন লাইন ${edits}`);
+      say(`(${n} এ একটা লাইন যোগ হলো। cat ${n} দিয়ে দেখো)`, 'dim');
+    };
+    const diffOf = (a = [], b = []) => [...a.filter(l => !b.includes(l)).map(l => ['-' + l, 'err']), ...b.filter(l => !a.includes(l)).map(l => ['+' + l, 'gplus'])];
+
+    const git = (a, raw) => {
+      const sub = a[0];
+      if (!sub || sub === 'help' || sub === '--help') return say('git init | status | add <ফাইল বা .> | commit -m "বার্তা" | log [--oneline] | diff [--staged]\nrestore <ফাইল> | restore --staged <ফাইল> | branch [নাম] | switch [-c] <নাম> | merge <নাম>\nremote add origin <url> | push [-u origin main]', 'dim');
+      if (sub === '--version') return say('git version 2.43.0');
+      if (sub === 'config') return;
+      if (sub === 'init') {
+        if (S.init) return say('Reinitialized existing Git repository in /home/rafi/my_app/.git/');
+        S.init = true; return say('Initialized empty Git repository in /home/rafi/my_app/.git/');
+      }
+      if (!S.init) return err('fatal: not a git repository (or any of the parent directories): .git');
+      const files = a.slice(1).filter(x => !x.startsWith('-'));
+      const pick = (pool, list) => list.includes('.') ? pool : list;
+      switch (sub) {
+        case 'status': {
+          const st = staged(), un = unstaged(), ut = untracked();
+          say(`On branch ${S.head}`);
+          if (!headId()) say('\nNo commits yet');
+          if (st.length) { say('\nChanges to be committed:'); st.forEach(([t, n]) => say(`\t${(t + ':').padEnd(12)}${n}`, 'gplus')); }
+          if (un.length) { say('\nChanges not staged for commit:\n  (use "git add <file>..." to update what will be committed)'); un.forEach(([t, n]) => say(`\t${(t + ':').padEnd(12)}${n}`, 'err')); }
+          if (ut.length) { say('\nUntracked files:\n  (use "git add <file>..." to include in what will be committed)'); ut.forEach(n => say('\t' + n, 'err')); }
+          if (!st.length && !un.length && !ut.length) say(headId() ? 'nothing to commit, working tree clean' : '\nnothing to commit (create/copy files and use "git add" to track)');
+          return say('(সবুজ = ফ্রেমে আছে, commit হবে। লাল = ফ্রেমের বাইরে)', 'dim');
+        }
+        case 'add': {
+          if (!files.length) return say('Nothing specified, nothing added.\nhint: Maybe you wanted to say \'git add .\'?');
+          for (const n of pick(names(S.work, S.index), files)) {
+            if (S.work[n]) S.index[n] = [...S.work[n]];
+            else if (n in S.index) delete S.index[n];
+            else return err(`fatal: pathspec '${n}' did not match any files`);
+          }
+          return;
+        }
+        case 'commit': {
+          const mi = a.findIndex(x => x === '-m' || x === '-am');
+          if (mi < 0 || a[mi + 1] === undefined) return err('নকল Git এ বার্তা -m দিয়ে লেখো: git commit -m "কী করলাম"\n(আসল Git এ -m না দিলে বার্তা লেখার জন্য একটা editor খোলে)');
+          if (a[mi] === '-am') Object.keys(S.index).forEach(n => { if (S.work[n]) S.index[n] = [...S.work[n]]; else delete S.index[n]; });
+          const st = staged();
+          if (!st.length) return say(unstaged().length || untracked().length ? 'no changes added to commit (use "git add" and/or "git commit -a")' : 'nothing to commit, working tree clean');
+          const root = !headId(), id = newId(a[mi + 1]);
+          S.commits.push({ id, n: S.commits.length, msg: a[mi + 1], parent: headId(), tree: copy(S.index), br: S.head });
+          S.branches[S.head] = id;
+          return say(`[${S.head}${root ? ' (root-commit)' : ''} ${id}] ${a[mi + 1]}\n ${st.length} file${st.length > 1 ? 's' : ''} changed`);
+        }
+        case 'log': {
+          if (!headId()) return err(`fatal: your current branch '${S.head}' does not have any commits yet`);
+          const one = a.includes('--oneline'), lab = id => labels(id).length ? ` (${labels(id).join(', ')})` : '';
+          ancestors(headId()).map(byId).sort((x, y) => y.n - x.n).forEach(c => one
+            ? print(`<span class="gid">${c.id}</span>${esc(lab(c.id))} ${esc(c.msg)}`)
+            : print(`<span class="gid">commit ${c.id}${esc(lab(c.id))}</span>${esc(`\nAuthor: Rafi <rafi@example.com>\n\n    ${c.msg}\n`)}`));
+          return;
+        }
+        case 'diff': {
+          const st = a.includes('--staged') || a.includes('--cached');
+          const list = st ? staged().map(x => x[1]) : unstaged().map(x => x[1]);
+          if (!list.length) return say(st ? '(ফ্রেমে নতুন কিছু নেই, তাই কিছু দেখানোর নেই)' : '(কাজের ফোল্ডারে আর staging এ কোনো পার্থক্য নেই)', 'dim');
+          list.forEach(n => { say(`diff --git a/${n} b/${n}`, 'dim'); diffOf(st ? tree(headId())[n] : S.index[n], st ? S.index[n] : S.work[n]).forEach(([l, c]) => say(l, c)); });
+          return;
+        }
+        case 'restore': {
+          const st = a.includes('--staged');
+          if (!files.length) return err('fatal: you must specify path(s) to restore');
+          for (const n of pick(st ? Object.keys(S.index) : Object.keys(S.index), files)) {
+            if (st) { const h = tree(headId())[n]; if (h) S.index[n] = [...h]; else delete S.index[n]; }
+            else if (n in S.index) { if (!eq(S.work[n], S.index[n])) restored = true; S.work[n] = [...S.index[n]]; }
+            else return err(`error: pathspec '${n}' did not match any file(s) known to git`);
+          }
+          return;
+        }
+        case 'branch': {
+          if (!files.length) return Object.keys(S.branches).sort().forEach(b => say(`${b === S.head ? '* ' : '  '}${b}`, b === S.head ? 'gplus' : ''));
+          if (!headId()) return err(`fatal: not a valid object name: '${S.head}'`);
+          if (S.branches[files[0]] !== undefined) return err(`fatal: a branch named '${files[0]}' already exists`);
+          S.branches[files[0]] = headId(); return;
+        }
+        case 'switch': case 'checkout': {
+          const make = a.includes('-c') || a.includes('-b'), b = files[0];
+          if (!b) return err('fatal: missing branch or commit argument');
+          if (make) { if (!headId()) return err(`fatal: not a valid object name: '${S.head}'`); if (S.branches[b] !== undefined) return err(`fatal: a branch named '${b}' already exists`); S.branches[b] = headId(); }
+          else if (S.branches[b] === undefined) return err(`fatal: invalid reference: ${b}`);
+          if (b === S.head) return say(`Already on '${b}'`);
+          const dirty = [...staged(), ...unstaged()].map(x => x[1]);
+          if (!make && dirty.length) return err(`error: Your local changes to the following files would be overwritten by checkout:\n\t${dirty.join('\n\t')}\nPlease commit your changes or stash them before you switch branches.\nAborting`);
+          Object.keys(tree(headId())).forEach(n => { if (!dirty.includes(n)) delete S.work[n]; });
+          const t = tree(S.branches[b]);
+          Object.entries(t).forEach(([n, v]) => { if (!dirty.includes(n)) S.work[n] = [...v]; });
+          if (!make) S.index = copy(t);
+          S.head = b; return say(make ? `Switched to a new branch '${b}'` : `Switched to branch '${b}'`);
+        }
+        case 'merge': {
+          const b = files[0], t = S.branches[b];
+          if (!b || t === undefined) return err(`merge: ${b || ''} - not something we can merge`);
+          if (!t) return err(`merge: ${b} - not something we can merge`);
+          if (staged().length || unstaged().length) return err('error: Your local changes would be overwritten by merge.\nPlease commit your changes or stash them before you merge.\nAborting');
+          const h = headId();
+          if (h && ancestors(h).includes(t)) return say('Already up to date.');
+          const apply = tr => { Object.keys(tree(h)).forEach(n => delete S.work[n]); Object.entries(tr).forEach(([n, v]) => { S.work[n] = [...v]; }); S.index = copy(tr); };
+          if (!h || ancestors(t).includes(h)) {
+            apply(tree(t)); S.branches[S.head] = t;
+            return say(`Updating ${h || '0000000'}..${t}\nFast-forward\n(${b} এর সব ছবি সোজা ${S.head} এ চলে এলো)`);
+          }
+          const hs = ancestors(h), base = ancestors(t).map(byId).filter(c => hs.includes(c.id)).sort((x, y) => y.n - x.n)[0];
+          const bt = base ? base.tree : {}, ht = tree(h), tt = tree(t), res = {}, bad = [];
+          names(bt, ht, tt).forEach(n => {
+            const v = eq(ht[n], tt[n]) ? ht[n] : eq(bt[n], ht[n]) ? tt[n] : eq(bt[n], tt[n]) ? ht[n] : (bad.push(n), ht[n]);
+            if (v) res[n] = [...v];
+          });
+          if (bad.length) {
+            bad.forEach(n => say(`Auto-merging ${n}\nCONFLICT (content): Merge conflict in ${n}`, 'err'));
+            say('Automatic merge failed; fix conflicts and then commit the result.', 'err');
+            return say('(একই লাইন দুই খাতায় দুইভাবে বদলেছে, Git নিজে ঠিক করতে পারছে না। আসল Git এ ফাইল খুলে ঠিক করতে হয়, গল্পের ৭ নম্বর অধ্যায়ে আছে। নকল Git এ merge টা বাতিল করলাম।)', 'dim');
+          }
+          apply(res);
+          const id = newId('merge' + b);
+          S.commits.push({ id, n: S.commits.length, msg: `Merge branch '${b}'`, parent: h, parent2: t, tree: copy(res), br: S.head });
+          S.branches[S.head] = id;
+          return say("Merge made by the 'ort' strategy.");
+        }
+        case 'remote': {
+          if (a[1] === 'add' && a[2] && a[3]) { if (S.remote) return err(`error: remote ${a[2]} already exists.`); S.remote = a[3]; return; }
+          if (a[1] === '-v' || !a[1]) return S.remote && say(`origin\t${S.remote} (fetch)\norigin\t${S.remote} (push)`);
+          return err('নকল Git এ শুধু: git remote add origin <url>');
+        }
+        case 'push': {
+          if (!S.remote) return err("fatal: No configured push destination.\nEither specify the URL from the command-line or configure a remote repository using\n\n    git remote add <name> <url>\n\nand then push using the remote name\n\n    git push <name>");
+          const b = files[1] || S.head;
+          if (!files.length && !S.upstream[S.head]) return err(`fatal: The current branch ${S.head} has no upstream branch.\nTo push the current branch and set the remote as upstream, use\n\n    git push --set-upstream origin ${S.head}`);
+          if (!S.branches[b]) return err(`error: src refspec ${b} does not match any`);
+          if (a.includes('-u') || a.includes('--set-upstream')) S.upstream[b] = true;
+          const old = S.pushed[b];
+          if (old === S.branches[b]) return say('Everything up-to-date');
+          S.pushed[b] = S.branches[b];
+          return say(`To ${S.remote}\n ${old ? `  ${old}..${S.branches[b]}` : '* [new branch]     '}  ${b} -> ${b}${a.includes('-u') ? `\nbranch '${b}' set up to track 'origin/${b}'.` : ''}`);
+        }
+        default: return err(`git: '${sub}' is not a git command. See 'git --help'.\n(নকল Git এ যা আছে: git help)`);
+      }
+    };
+
+    const run = line => {
+      const toks = (line.match(/"[^"]*"|'[^']*'|\S+/g) || []).map(t => t.replace(/^(["'])(.*)\1$/, '$2'));
+      const [cmd, ...a] = toks;
+      if (!cmd) return;
+      if (cmd === 'git') git(a, line);
+      else if (cmd === 'edit') a.length ? a.forEach(edit) : err('edit: কোন ফাইল? যেমন: edit hello.dart');
+      else if (cmd === 'ls' || cmd === 'dir') say(Object.keys(S.work).sort().join('  ') || '(খালি)');
+      else if (cmd === 'cat' || cmd === 'type') a.forEach(n => S.work[n] ? say(S.work[n].join('\n')) : err(`cat: ${n}: No such file or directory`));
+      else if (cmd === 'touch') a.forEach(n => { S.work[n] ||= []; });
+      else if (cmd === 'rm' || cmd === 'del') a.forEach(n => S.work[n] ? delete S.work[n] : err(`rm: cannot remove '${n}': No such file or directory`));
+      else if (cmd === 'clear' || cmd === 'cls') out.innerHTML = '';
+      else if (cmd === 'help') say('git ... (git help লিখলে git এর সব)\nedit ফাইল   ফাইলে একটা লাইন যোগ করো (কোড বদলানোর ভান)\nls, cat ফাইল, touch ফাইল, rm ফাইল, clear', 'dim');
+      else err(`${cmd}: command not found (help লেখো)`);
+      return toks;
+    };
+
+    const check = toks => MIS.forEach(([, ok], i) => { if (!lis[i].classList.contains('ok') && ok(toks || [])) lis[i].classList.add('ok'); });
+    const hist = []; let hi = 0;
+    const reset = () => {
+      S = fresh(); edits = 0; restored = false;
+      lis.forEach(l => l.classList.remove('ok'));
+      out.innerHTML = ''; say('my_app ফোল্ডারে আছো। ভেতরে hello.dart আর README.md। শুরু করো: git init', 'dim'); draw();
+    };
+    inp.onkeydown = e => {
+      if (e.key === 'Enter') {
+        const line = inp.value; inp.value = '';
+        print(`<span class="ps">${esc(prompt())}</span> ${esc(line)}`);
+        if (line.trim()) { hist.push(line.trim()); hi = hist.length; }
+        const toks = run(line);
+        check(toks); draw(); out.scrollTop = out.scrollHeight;
+      } else if (e.key === 'ArrowUp' && hi > 0) { e.preventDefault(); inp.value = hist[--hi]; }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi + 1, hist.length); inp.value = hist[hi] || ''; }
+    };
+    $('.term', el).onclick = () => { if (!getSelection().toString()) inp.focus({ preventScroll: true }); };
+    $('[data-t=reset]', el).onclick = reset;
+    reset();
   },
 };
 
