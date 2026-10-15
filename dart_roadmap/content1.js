@@ -496,7 +496,7 @@ print(x);`, opts: ['10', '9', '11', '4'], a: 1, why: '5 × 2 = 10, তারপ�
 };
 
 TOPICS['conversion'] = {
-  short: 'Type বদল ও Input', title: 'Type Conversion আর ইউজার Input', days: 'দিন ৪',
+  short: 'Type বদল ও Input', title: 'Type Conversion আর ইউজার Input', days: 'দিন ৩–৪',
   goal: "{{'25'}} আর {{25}} এর পার্থক্য বোঝা, এক type থেকে আরেক type এ বদলানো, আর কিবোর্ড থেকে input নেওয়া।",
   learn: [
     "ইউজার কিবোর্ড থেকে যা টাইপ করে, সব **String** হয়ে আসে। {{'25'}} একটা লেখা, {{25}} একটা সংখ্যা। হিসাব করতে হলে আগে convert করতে হয়।",
@@ -520,7 +520,7 @@ TOPICS['conversion'] = {
 }` },
     { tip: "{{int.parse('abc')}} দিলে প্রোগ্রাম crash করে। নিরাপদ উপায়: {{int.tryParse('abc')}}, এটা crash না করে {{null}} দেয়। null কী, পরের টপিকে দেখবে।" },
     { h: 'কিবোর্ড থেকে input' },
-    'নিজের কম্পিউটারে Dart চালালে {{stdin}} দিয়ে input নেওয়া যায়। **DartPad এ input নেওয়া যায় না**, তাই DartPad এ প্র্যাকটিসের সময় variable এ সরাসরি মান বসিয়ে নাও। কম্পিউটারে চালাতে terminal এ লেখো {{dart run main.dart}} (আগের টপিক Terminal এ দেখেছো)।',
+    'নিজের কম্পিউটারে Dart চালালে {{stdin}} দিয়ে input নেওয়া যায়। **DartPad এ input নেওয়া যায় না**, তাই DartPad এ প্র্যাকটিসের সময় variable এ সরাসরি মান বসিয়ে নাও। কম্পিউটারে চালাতে terminal এ লেখো {{dart run main.dart}}। terminal নতুন হলে আগে সূচির **Extra** অংশের Terminal টপিক দেখে নাও।',
     { code: `import 'dart:io';
 
 void main() {

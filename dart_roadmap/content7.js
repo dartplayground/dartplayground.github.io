@@ -1,4 +1,4 @@
-// নতুন টপিক: terminal (সপ্তাহ ২) আর dart-compile (সপ্তাহ ১২)
+// Extra টপিক (কোনো সপ্তাহে না): terminal (Linux/Mac), powershell (Windows), dart-compile
 // topic এ lang: 'bash' দিলে ওই টপিকের সব কোড terminal command হিসেবে দেখায়। কোনো একটা কোড আলাদা হলে সেখানে lang দাও।
 
 TRACES.cd = {
@@ -19,11 +19,12 @@ TRACES.cd = {
 };
 
 TOPICS['terminal'] = {
-  short: 'Linux Terminal', title: 'Linux Command Line: Terminal এর প্রথম পাঠ', days: 'দিন ৩', lang: 'bash',
+  short: 'Terminal (Linux/Mac)', title: 'Linux Command Line: Terminal এর প্রথম পাঠ', days: 'Input টপিকের আগে পড়ো', lang: 'bash',
   goal: 'মাউস ছাড়া, শুধু লিখে কম্পিউটারকে নির্দেশ দেওয়া: ফোল্ডারে ঘোরা, ফাইল বানানো, কপি করা, মোছা, আর নিজের Dart প্রোগ্রাম চালানো।',
   learn: [
+    { tip: 'এই টপিক **Linux আর Mac** এর জন্য। Windows হলে [Terminal (Windows)](#powershell) টপিক পড়ো। দুইটা পড়ার দরকার নেই, তোমার কম্পিউটার যেটা, সেটা।' },
     'এতদিন DartPad এ কোড চালিয়েছ। কিন্তু নিজের কম্পিউটারে Dart চালাতে, input নিতে, বা পরে app বানাতে **terminal** লাগবে। terminal হলো একটা কালো জানালা যেখানে মাউস দিয়ে ক্লিক না করে **লিখে** নির্দেশ দাও। ফাইল ম্যানেজারে যা যা ক্লিক করে করো, terminal এ তার সবই লিখে করা যায়।',
-    'তুমি যা লেখো, সেটা পড়ে আর চালায় একটা প্রোগ্রাম, নাম **shell**। Linux এ সাধারণত shell হলো **bash**। Ubuntu তে terminal খুলতে চাপো {{Ctrl + Alt + T}}। (Mac এর Terminal এও প্রায় সব command একই। Windows এ WSL বা Git Bash দিয়ে এগুলো চলে।)',
+    'তুমি যা লেখো, সেটা পড়ে আর চালায় একটা প্রোগ্রাম, নাম **shell**। Linux এ সাধারণত shell হলো **bash**। Ubuntu তে terminal খুলতে চাপো {{Ctrl + Alt + T}}। (Mac এর Terminal এও প্রায় সব command একই।)',
     { h: 'Prompt: terminal তোমার জন্য অপেক্ষা করছে' },
     { code: 'rafi@pc:~$ ', lang: 'plaintext' },
     { anat: [['rafi', 'কে ব্যবহার করছে (user)'], ['@pc', 'কোন কম্পিউটার'], [':~', 'এখন কোন ফোল্ডারে আছো (~ মানে home)'], ['$', 'এবার তোমার লেখার পালা']], cap: 'prompt এর প্রতিটা অংশ' },
@@ -106,6 +107,112 @@ TOPICS['terminal'] = {
   ],
 };
 
+TRACES.psCd = {
+  title: 'PowerShell এ ঘোরাঘুরি', lang: 'powershell', box: 'এখন কোথায় আছি',
+  code: ['Get-Location', 'cd Documents', 'Get-Location', 'cd ..', 'mkdir khata', 'cd khata', 'New-Item notes.txt', 'Get-ChildItem', 'cd ~'],
+  steps: [
+    { l: 0, v: { 'ফোল্ডার': 'C:\\Users\\rafi' }, p: 'C:\\Users\\rafi', n: 'PowerShell খুললে তুমি থাকো নিজের ফোল্ডারে (home)। {{Get-Location}} সেটাই বলে দিল। (আসলটা উপরে {{Path}} আর {{----}} লিখে একটা ছোট টেবিল দেখায়।)' },
+    { l: 1, v: { 'ফোল্ডার': 'C:\\Users\\rafi\\Documents' }, n: '{{cd Documents}}: Documents এর ভেতরে ঢুকলাম। কিছু প্রিন্ট হয়নি, কিন্তু জায়গা বদলেছে। prompt ও বদলে হয়েছে {{PS C:\\Users\\rafi\\Documents>}}।' },
+    { l: 2, p: 'C:\\Users\\rafi\\Documents', n: 'আবার {{Get-Location}}। এবার উত্তর আলাদা, কারণ আমরা সরে এসেছি।' },
+    { l: 3, v: { 'ফোল্ডার': 'C:\\Users\\rafi' }, n: '{{..}} মানে "এক ধাপ উপরের ফোল্ডার"। আবার home এ ফিরলাম।' },
+    { l: 4, p: 'd----  khata', n: '{{mkdir khata}}: নতুন ফোল্ডার হলো। PowerShell বানানো জিনিসের একটা ছোট তালিকাও দেখায় ({{d}} মানে directory, মানে ফোল্ডার)। আমরা এখনো home এই আছি।' },
+    { l: 5, v: { 'ফোল্ডার': 'C:\\Users\\rafi\\khata' }, n: 'এবার khata তে ঢুকলাম।' },
+    { l: 6, p: '-a---  notes.txt', n: '{{New-Item notes.txt}}: খালি একটা ফাইল হলো। (Linux এর {{touch}} এর কাজ।)' },
+    { l: 7, p: '-a---  notes.txt', n: '{{Get-ChildItem}} (বা {{ls}}, {{dir}}): khata তে এখন শুধু notes.txt।' },
+    { l: 8, v: { 'ফোল্ডার': 'C:\\Users\\rafi' }, n: '{{~}} মানে home। যেখান থেকেই লেখো, {{cd ~}} সোজা home এ নিয়ে যায়।' },
+  ],
+};
+
+TOPICS['powershell'] = {
+  short: 'Terminal (Windows)', title: 'Windows PowerShell: Terminal এর প্রথম পাঠ', days: 'Input টপিকের আগে পড়ো', lang: 'powershell',
+  goal: 'Windows কম্পিউটারে মাউস ছাড়া, শুধু লিখে নির্দেশ দেওয়া: ফোল্ডারে ঘোরা, ফাইল বানানো, কপি করা, মোছা, আর নিজের Dart প্রোগ্রাম চালানো।',
+  learn: [
+    { tip: 'এই টপিক **Windows** এর জন্য। Linux বা Mac হলে [Terminal (Linux/Mac)](#terminal) টপিক পড়ো। দুইটা পড়ার দরকার নেই, তোমার কম্পিউটার যেটা, সেটা।' },
+    'এতদিন DartPad এ কোড চালিয়েছ। কিন্তু নিজের কম্পিউটারে Dart চালাতে, input নিতে, বা পরে app বানাতে **terminal** লাগবে। terminal হলো একটা জানালা যেখানে মাউস দিয়ে ক্লিক না করে **লিখে** নির্দেশ দাও। File Explorer এ যা যা ক্লিক করে করো, terminal এ তার সবই লিখে করা যায়।',
+    'Windows এর terminal এর নাম **PowerShell**। খুলতে: **Start** মেনুতে "PowerShell" বা "Terminal" লিখে Enter, অথবা {{Win + X}} চেপে **Terminal**। Windows এ দুইটা আছে: পুরানো **Windows PowerShell** (নীল জানালা, আগে থেকেই থাকে) আর নতুন **PowerShell 7**। এই পাতার সব কিছু দুইটাতেই চলে, শুধু Error এর লেখা একটু আলাদা দেখায়।',
+    { h: 'Prompt: PowerShell তোমার জন্য অপেক্ষা করছে' },
+    { code: 'PS C:\\Users\\rafi> ', lang: 'plaintext' },
+    { anat: [['PS', 'এটা PowerShell'], ['C:', 'কোন drive (হার্ডডিস্কের ভাগ)'], ['\\Users\\rafi', 'এখন কোন ফোল্ডারে আছো'], ['>', 'এবার তোমার লেখার পালা']], cap: 'prompt এর প্রতিটা অংশ' },
+    'prompt এর পরে command লেখো, তারপর **Enter**। Enter না চাপা পর্যন্ত কিছুই হয় না। এই পাতার উদাহরণে prompt আর লিখছি না, শুধু command।',
+    { h: 'Command এর নাম: কাজ-জিনিস (Verb-Noun)' },
+    'PowerShell এর আসল command গুলোর নাম খুব নিয়মমাফিক: **কী করবে** তারপর একটা {{-}} তারপর **কিসের উপর**। নাম দেখেই কাজ বোঝা যায়।',
+    { anat: [['Get-ChildItem', 'command: Get (আনো) + ChildItem (ভেতরের জিনিস)'], ['-Path', 'parameter এর নাম ({{-}} দিয়ে শুরু)'], ['Documents', 'parameter এর মান'], ['-Force', 'switch: থাকলে চালু, না থাকলে বন্ধ']], cap: 'শব্দগুলো স্পেস দিয়ে আলাদা' },
+    { table: [['Verb (কাজ)', 'মানে', 'উদাহরণ'], ['Get', 'দেখাও / আনো', '{{Get-Location}}, {{Get-Content}}'], ['Set', 'বদলাও / বসাও', '{{Set-Location}}, {{Set-Content}}'], ['New', 'নতুন বানাও', '{{New-Item}}'], ['Remove', 'মুছো', '{{Remove-Item}}'], ['Copy / Move / Rename', 'কপি / সরাও / নাম বদলাও', '{{Copy-Item}}, {{Move-Item}}, {{Rename-Item}}']] },
+    'লম্বা নাম রোজ লিখতে কষ্ট, তাই প্রতিটার ছোট ডাকনাম আছে, যাকে বলে **alias**। মজার ব্যাপার: Linux এর পরিচিত নামগুলোও alias হিসেবে চলে: {{ls}}, {{cd}}, {{cat}}, {{cp}}, {{mv}}, {{rm}}, {{pwd}}, {{echo}}। আর পুরানো Windows এর {{dir}}, {{copy}}, {{del}}, {{type}} ও চলে। কোন alias আসলে কোন command, দেখতে: {{Get-Alias ls}}।',
+    { warn: 'নাম এক হলেও **option আলাদা**। Linux এর {{ls -a}} বা {{rm -r}} এখানে Linux এর মতো কাজ করে না। PowerShell এ লেখো {{Get-ChildItem -Force}} আর {{Remove-Item -Recurse}}। আর {{touch}} PowerShell এ নেই।' },
+    { tip: 'Linux এর উল্টো: Windows এ **বড়-ছোট হাতের অক্ষর কোনো ব্যাপার না**। {{get-childitem}}, {{GET-CHILDITEM}}, {{Documents}}, {{documents}}, সব একই। তবু সুন্দর দেখাতে সবাই {{Get-ChildItem}} এভাবে লেখে।' },
+    { h: 'ফোল্ডারের গাছ আর ঠিকানা' },
+    'Windows এ প্রতিটা drive এর আলাদা গাছ: {{C:\\}}, {{D:\\}}। ঠিকানায় ফোল্ডার আলাদা করা হয় **ব্যাকস্ল্যাশ** {{\\}} দিয়ে (Linux এ {{/}})। তোমার নিজের সব জিনিস থাকে {{C:\\Users\\rafi}} এ। এটাই তোমার **home**, ছোট করে {{~}}।',
+    { code: `C:\\
+├── Program Files     (install করা প্রোগ্রাম)
+├── Windows           (Windows নিজে, হাত দিও না)
+└── Users
+    └── rafi          ← ~ (তোমার home)
+        ├── Desktop
+        ├── Documents
+        │   └── notes.txt
+        ├── Pictures
+        └── dart_practice
+            └── hello.dart`, lang: 'plaintext' },
+    { table: [['', 'উদাহরণ', 'মানে'], ['**Absolute** (পূর্ণ ঠিকানা)', '{{C:\\Users\\rafi\\Documents}}', 'drive দিয়ে শুরু। যেখান থেকেই লেখো, একই জায়গা।'], ['**Relative** (আপেক্ষিক)', '{{Documents}}, {{..\\Pictures}}', 'এখন যেখানে আছো, সেখান থেকে হিসাব।']] },
+    { tip: 'PowerShell {{/}} ও বোঝে: {{cd Documents/khata}} আর {{cd Documents\\khata}} একই। নামের প্রথম ২-৩ অক্ষর লিখে **Tab** চাপো, বাকিটা নিজে পূর্ণ হবে। আবার Tab চাপলে পরের মিলে যাওয়া নাম আসে।' },
+    { h: 'কোথায় আছি, কী আছে, ঘোরাফেরা' },
+    { code: 'Get-Location\nGet-ChildItem\nGet-ChildItem Documents\ncd Documents\ncd ..\ncd ~\ncd C:\\Windows', out: '\nPath\n----\nC:\\Users\\rafi\n\n    Directory: C:\\Users\\rafi\n\nMode         LastWriteTime   Length Name\n----         -------------   ------ ----\nd----   15-10-2026  10:00           Desktop\nd----   15-10-2026  10:00           Documents\n...' },
+    { table: [['command', 'ছোট নাম', 'কাজ'], ['{{Get-Location}}', '{{pwd}}', 'এখন কোন ফোল্ডারে আছো'], ['{{Get-ChildItem}}', '{{ls}}, {{dir}}', 'এই ফোল্ডারে কী কী আছে। Mode এ {{d}} মানে ফোল্ডার, {{a}} মানে ফাইল।'], ['{{Get-ChildItem -Force}}', '', 'লুকানো ফাইলসহ সব'], ['{{Set-Location Documents}}', '{{cd Documents}}', 'Documents এ ঢোকো'], ['{{cd ..}}', '', 'এক ধাপ উপরে'], ['{{cd ~}}', '', 'home এ, যেখান থেকেই হোক']] },
+    { h: 'ফাইল আর ফোল্ডার বানানো' },
+    { code: "mkdir khata\nmkdir school\\class7\\math\nNew-Item notes.txt\nSet-Content notes.txt 'আজ PowerShell শিখলাম'\nAdd-Content notes.txt 'কাল Dart চালাবো'\nGet-Content notes.txt", out: 'আজ PowerShell শিখলাম\nকাল Dart চালাবো' },
+    { list: ['{{mkdir নাম}}: নতুন ফোল্ডার। মাঝের ফোল্ডার না থাকলে সেগুলোও নিজে বানিয়ে নেয় (Linux এ এর জন্য {{-p}} লাগে)।', '{{New-Item নাম}}: খালি ফাইল। ফোল্ডার বানাতেও পারে: {{New-Item khata -ItemType Directory}}।', "{{Set-Content ফাইল 'লেখা'}}: ফাইলে লেখে, **আগের সব লেখা মুছে**।", "{{Add-Content ফাইল 'লেখা'}}: শেষে যোগ করে, আগেরটা থাকে।", "Linux এর মতো {{echo 'লেখা' > ফাইল}} আর {{>>}} ও চলে।", '{{Get-Content ফাইল}} (ছোট নাম {{cat}}, {{type}}): ফাইলের লেখা দেখায়।'] },
+    { h: 'কপি, সরানো, নাম বদলানো, মোছা' },
+    { code: 'Copy-Item notes.txt backup.txt\nCopy-Item notes.txt Documents\nCopy-Item school school_copy -Recurse\nRename-Item backup.txt old.txt\nMove-Item old.txt Documents\nRemove-Item Documents\\old.txt\nRemove-Item school_copy -Recurse' },
+    { table: [['command', 'ছোট নাম', 'কাজ'], ['{{Copy-Item উৎস গন্তব্য}}', '{{cp}}, {{copy}}', 'কপি। ফোল্ডার আর তার ভেতরের সব কপি করতে {{-Recurse}}।'], ['{{Move-Item উৎস গন্তব্য}}', '{{mv}}, {{move}}', 'অন্য ফোল্ডারে সরানো।'], ['{{Rename-Item পুরানো নতুন}}', '{{ren}}', 'নাম বদলানো। নতুন নামে শুধু নাম, ঠিকানা না।'], ['{{Remove-Item নাম}}', '{{rm}}, {{del}}', 'মোছা। ভেতরে জিনিস আছে এমন ফোল্ডার মুছতে {{-Recurse}}।']] },
+    { warn: 'PowerShell দিয়ে মুছলে **Recycle Bin এ যায় না**, সোজা চলে যায়, ফেরত আনা যায় না। {{Remove-Item ... -Recurse}} চালানোর আগে {{Get-Location}} আর {{Get-ChildItem}} দিয়ে দেখে নাও কোথায় আছো আর কী মুছছো।' },
+    { h: 'নিজে চালিয়ে দেখো' },
+    { widget: 'psLab' },
+    { h: 'যেগুলো প্রতিদিন কাজে লাগবে' },
+    { table: [['চাপো / লেখো', 'কাজ'], ['**Tab**', 'নাম পূর্ণ করা (বারবার চাপলে পরের মিল)'], ['**↑ / ↓**', 'আগের লেখা command ফেরত আনা'], ['**Ctrl + C**', 'কিছু select করা না থাকলে: চলতে থাকা প্রোগ্রাম থামানো (যেমন ভুল করে infinite loop)'], ['{{cls}} বা {{Clear-Host}}', 'স্ক্রিন পরিষ্কার'], ['{{Get-History}}', 'আগে কী কী লিখেছ'], ['{{Get-Help Get-ChildItem}}', 'কোনো command এর সাহায্য'], ['{{Get-Alias}}', 'কোন ছোট নাম কোন command']] },
+    { tip: 'Windows Terminal এ লেখা select করে **Ctrl + C** চাপলে কপি হয়, **Ctrl + V** দিয়ে পেস্ট। কিছু select করা না থাকলে Ctrl + C মানে "থামো"। পুরানো নীল জানালায় পেস্ট করতে মাউসের ডান বাটন।' },
+    { h: 'PowerShell থেকে Dart চালানো' },
+    'Dart install করা থাকলে ([dart.dev/get-dart](https://dart.dev/get-dart) দেখো), **PowerShell বন্ধ করে আবার খোলো**, তারপর নিশ্চিত হও যে সেটা কাজ করছে:',
+    { code: 'dart --version', out: 'Dart SDK version: 3.x.x (stable) ...' },
+    { warn: "{{dart : The term 'dart' is not recognized...}} দেখালে মানে PowerShell Dart খুঁজে পাচ্ছে না। প্রথমে PowerShell বন্ধ করে আবার খোলো (install এর আগে খোলা জানালা নতুন ঠিকানা জানে না)। তাও না হলে Dart এর {{bin}} ফোল্ডার Windows এর **PATH** এ যোগ করতে হবে, dart.dev এর install পাতায় ধাপগুলো আছে।" },
+    'তারপর একটা ফোল্ডার বানিয়ে ভেতরে Dart ফাইল লেখো আর চালাও:',
+    { code: 'mkdir ~\\dart_practice\ncd ~\\dart_practice\ncode hello.dart\ndart run hello.dart', out: 'Hello, Dart!' },
+    { list: ['{{code hello.dart}}: VS Code এ ফাইলটা খোলে (না থাকলে নতুন বানায়)। কোড লিখে **save** করো (Ctrl + S)। VS Code না থাকলে {{notepad hello.dart}} ও চলে।', '{{dart run hello.dart}}: প্রোগ্রাম চালায়। {{stdin.readLineSync()}} থাকলে এখানেই input দিতে পারবে, যেটা DartPad এ পারতে না।', 'ফাইল যে ফোল্ডারে, PowerShell ও সেই ফোল্ডারে থাকতে হবে। না হলে Dart ফাইল খুঁজে পাবে না।', 'VS Code এর ভেতরেও terminal আছে: **Ctrl + `** চাপো। Windows এ সেটা PowerShell ই।'] },
+    { code: "void main() {\n  print('Hello, Dart!');\n}", lang: 'dart' },
+  ],
+  how: [
+    'Enter চাপলে PowerShell লাইনটা **স্পেস দিয়ে ভাগ করে**। প্রথম শব্দ command। বাকিগুলোর মধ্যে {{-}} দিয়ে শুরু হলে parameter এর নাম, অন্যগুলো মান।',
+    'প্রথম শব্দ alias হলে ({{ls}}, {{cd}}) আগে আসল নামে বদলায় ({{Get-ChildItem}}, {{Set-Location}})। তারপর command চালায় আর ফল দেখায়।',
+    'PowerShell এর একটা বিশেষত্ব: command গুলো আসলে লেখা না, **object** ফেরত দেয়। যেমন {{Get-ChildItem}} প্রতিটা ফাইলের নাম, সাইজ, তারিখ সহ একটা করে object দেয়, PowerShell সেগুলো টেবিল বানিয়ে দেখায়। পরে এটা খুব কাজে লাগে, এখন শুধু জেনে রাখো।',
+    'PowerShell সবসময় মনে রাখে তুমি **এখন কোন ফোল্ডারে** আছো। relative path ({{Documents}}, {{..}}) সেখান থেকে হিসাব হয়। {{cd}} শুধু এই "এখন কোথায়" টা বদলায়।',
+    'নিচের যন্ত্রে ধাপে ধাপে দেখো, প্রতিটা command এর পরে "এখন কোথায় আছি" কিভাবে বদলায়।',
+  ],
+  traces: ['psCd'],
+  quiz: [
+    { q: 'তুমি {{C:\\Users\\rafi}} এ আছো। এই তিনটা চালালে কী দেখাবে?', code: 'cd Documents\ncd ..\nGet-Location', opts: ['C:\\Users\\rafi\\Documents', 'C:\\Users\\rafi', 'C:\\Users', 'C:\\'], a: 1, why: 'Documents এ ঢুকে {{..}} দিয়ে আবার এক ধাপ উপরে, মানে যেখান থেকে শুরু করেছিলে।' },
+    { q: 'শেষে কী দেখাবে?', code: "Set-Content a.txt 'hi'\nAdd-Content a.txt 'bye'\nGet-Content a.txt", opts: ['hi', 'bye', 'hi এর পরের লাইনে bye', 'Error'], a: 2, why: '{{Set-Content}} লিখলো hi, {{Add-Content}} শেষে bye যোগ করলো। দুইটাই আছে।' },
+    { q: 'কোনটা PowerShell এ কাজ **করবে না**?', opts: ['dir', 'ls', 'touch notes.txt', 'cd ..'], a: 2, why: '{{touch}} PowerShell এ নেই, তাই "is not recognized" Error। খালি ফাইল বানাতে {{New-Item notes.txt}}।' },
+    { q: '{{GET-CHILDITEM DOCUMENTS}} লিখলে কী হবে? (ফোল্ডারের আসল নাম Documents)', opts: ['Documents এর ভেতরে কী আছে দেখাবে', 'Error: command পাওয়া যায়নি', 'Error: ফোল্ডার পাওয়া যায়নি', 'শুধু Admin হলে চলবে'], a: 0, why: 'Windows আর PowerShell বড়-ছোট হাতের অক্ষর আলাদা করে না। Linux হলে Error হতো।' },
+    { q: '{{khata}} ফোল্ডারে ২টা ফাইল আছে। {{Remove-Item khata}} চালালে?', opts: ['ফোল্ডারসহ সব মুছে যাবে, কিছু জিজ্ঞেস না করে', 'থেমে জিজ্ঞেস করবে, কারণ ভেতরে জিনিস আছে আর -Recurse দেওয়া হয়নি', 'শুধু ফাইলগুলো মুছবে', 'ফোল্ডারটা Recycle Bin এ যাবে'], a: 1, why: 'ভেতরে জিনিস থাকলে PowerShell নিশ্চিত হতে চায়। জেনেবুঝে মুছতে {{Remove-Item khata -Recurse}}।' },
+  ],
+  probs: [
+    { l: 'e', q: 'PowerShell এ তুমি এখন কোন ফোল্ডারে আছো দেখো, তারপর সেখানে কী কী আছে দেখো।', sol: 'Get-Location\nGet-ChildItem' },
+    { l: 'e', q: 'PowerShell এ home এ {{khata}} নামে ফোল্ডার বানাও, তার ভেতরে যাও, তারপর নিশ্চিত হও যে সত্যিই ভেতরে আছো।', sol: 'cd ~\nmkdir khata\ncd khata\nGet-Location   # C:\\Users\\rafi\\khata' },
+    { l: 'e', q: 'PowerShell এ {{notes.txt}} ফাইলে লেখো "আজ PowerShell শিখলাম", তারপর ফাইলের ভেতরে কী আছে দেখো।', sol: "Set-Content notes.txt 'আজ PowerShell শিখলাম'\nGet-Content notes.txt" },
+    { l: 'e', q: 'PowerShell এ {{cd ..}} দুইবার না লিখে এক command এ দুই ধাপ উপরে যাও।', sol: 'cd ..\\..\nGet-Location' },
+    { l: 'e', q: 'ভুল খোঁজো: Linux এর ভিডিও দেখে PowerShell এ লিখলাম {{touch notes.txt}}, এলো {{The term \'touch\' is not recognized}}। কেন? ঠিক command কী?', ans: '{{touch}} Linux এর command, PowerShell এ এই নামে কিছু নেই। "is not recognized" মানেই "এই নামে কোনো command চিনি না"।\nPowerShell এ খালি ফাইল বানাতে: {{New-Item notes.txt}} (ছোট নাম {{ni notes.txt}})।' },
+    { l: 'e', q: 'বন্ধু PowerShell এ {{ls}} লিখলো, কাজ করলো। আরেক বন্ধু {{dir}} লিখলো, সেটাও কাজ করলো। কেন দুইটাই চলে? PowerShell কে দিয়েই প্রমাণ করো।', sol: 'Get-Alias ls\nGet-Alias dir', note: 'দুইটাই {{Get-ChildItem}} এর ছোট নাম (alias)। Output এ দেখাবে {{ls -> Get-ChildItem}} আর {{dir -> Get-ChildItem}}।' },
+    { l: 'm', q: 'PowerShell এ {{notes.txt}} এ আগের লেখা না মুছে আরেকটা লাইন যোগ করো: "কাল Dart চালাবো"। তারপর পুরো ফাইল দেখো।', hint: '{{Set-Content}} মুছে লেখে। যোগ করার আলাদা command আছে।', sol: "Add-Content notes.txt 'কাল Dart চালাবো'\nGet-Content notes.txt" },
+    { l: 'm', q: 'PowerShell এ এই গঠন বানাও: {{school\\class7\\math}} আর {{school\\class7\\science}}। তারপর {{school\\class7}} এ কী আছে দেখো।', sol: 'mkdir school\\class7\\math\nmkdir school\\class7\\science\nGet-ChildItem school\\class7', note: 'PowerShell এর {{mkdir}} মাঝের school আর class7 নিজেই বানিয়ে নেয়, Linux এর মতো {{-p}} লাগে না।' },
+    { l: 'm', q: 'PowerShell এ {{notes.txt}} এর কপি বানাও {{backup.txt}} নামে। তারপর {{notes.txt}} এর নাম বদলে {{diary.txt}} করো। শেষে {{Get-ChildItem}} এ কী দেখবে?', sol: 'Copy-Item notes.txt backup.txt\nRename-Item notes.txt diary.txt\nGet-ChildItem   # backup.txt আর diary.txt' },
+    { l: 'm', q: 'PowerShell এ তুমি এখন কোথায় আছো জানো না। এক command এ home এর {{Pictures}} ফোল্ডারে যাও।', hint: '{{~}} কাজে লাগবে।', sol: 'cd ~\\Pictures' },
+    { l: 'm', q: 'Windows এ {{~\\dart_practice}} এ {{hello.dart}} বানাও যেটা তোমার নাম প্রিন্ট করে, তারপর PowerShell থেকে চালাও।', sol: "mkdir ~\\dart_practice\ncd ~\\dart_practice\ncode hello.dart        # কোড লিখে save করো\ndart run hello.dart", note: "hello.dart এর ভেতরে: {{void main() { print('আমি রাফি'); } }}। চালানোর আগে save করতে ভুলো না।" },
+    { l: 'h', q: 'PowerShell এ {{old_project}} ফোল্ডারে অনেক ফাইল আছে। {{Remove-Item old_project}} চালালে থেমে কিছু জিজ্ঞেস করছে। কেন? পুরো ফোল্ডারটা নিরাপদে মোছো।', sol: 'Get-Location                    # ঠিক জায়গায় আছি তো?\nGet-ChildItem old_project       # কী মুছছি দেখে নিই\nRemove-Item old_project -Recurse\nGet-ChildItem                   # সত্যিই চলে গেছে?', note: 'ভেতরে জিনিস থাকলে PowerShell নিশ্চিত হতে চায়। {{-Recurse}} মানে "ভেতরের সবকিছুসহ"। Recycle Bin এ যায় না, তাই আগে দেখে নেওয়া।' },
+    { l: 'h', q: 'PowerShell এ লিখলাম {{cd C:\\Program Files}}, এলো {{A positional parameter cannot be found that accepts argument \'Files\'}}। কেন? ঠিক করো।', sol: "cd 'C:\\Program Files'", note: 'স্পেস দিয়ে শব্দ ভাগ হয়, তাই PowerShell ভাবলো তুমি দুইটা জিনিস দিয়েছ: {{C:\\Program}} আর {{Files}}। নামে স্পেস থাকলে quote এর ভেতরে দাও। এজন্য নিজের ফাইল-ফোল্ডারের নামে স্পেস না দিয়ে {{my_notes}} লেখা ভালো।' },
+    { l: 'h', q: 'কম্পিউটার ছাড়া, খাতায় dry run করো: নিচের command গুলো চালালে শেষে তুমি কোথায় থাকবে, আর শেষ {{Get-ChildItem}} কী দেখাবে? শুরু {{C:\\Users\\rafi}} থেকে।', code: 'mkdir a\ncd a\nmkdir b\nmkdir c\ncd b\nNew-Item x.txt\ncd ..\\c\nNew-Item y.txt\ncd ..\nGet-ChildItem', ans: 'শেষে আছো {{C:\\Users\\rafi\\a}}, আর {{Get-ChildItem}} দেখাবে দুইটা ফোল্ডার: {{b}} আর {{c}}।\n{{cd ..\\c}} মানে b থেকে এক ধাপ উপরে (a), তারপর c তে। শেষের {{cd ..}} c থেকে a তে আনে। x.txt আছে b এর ভেতরে, y.txt c এর ভেতরে।' },
+  ],
+};
+
 TRACES.args = {
   title: 'Argument কিভাবে main এ পৌঁছায়',
   code: ['// terminal: dart run greet.dart Rafi 14', 'void main(List<String> args) {', '  String name = args[0];', '  int age = int.parse(args[1]);', "  print('$name, আগামী বছর ${age + 1}');", '}'],
@@ -119,7 +226,7 @@ TRACES.args = {
 };
 
 TOPICS['dart-compile'] = {
-  short: 'Compile ও Argument', title: 'Dart কিভাবে চলে: Compile, Machine Code আর Argument', days: 'দিন ১–২',
+  short: 'Compile ও Argument', title: 'Dart কিভাবে চলে: Compile, Machine Code আর Argument', days: 'List শেখার পরে, Mini Project এর আগে',
   goal: 'বোঝা যে তোমার লেখা কোড কিভাবে কম্পিউটারের ভাষায় (machine code) বদলায়, নিজের প্রোগ্রামকে আলাদা app (exe ফাইল) বানানো, আর terminal থেকে প্রোগ্রামে argument পাঠানো।',
   learn: [
     "কম্পিউটারের মগজ, মানে **CPU**, শুধু একটা ভাষা বোঝে: **machine code**। এগুলো 0 আর 1 দিয়ে লেখা খুব ছোট ছোট নির্দেশ: \"এই সংখ্যাটা ওই ঘরে রাখো\", \"এই দুইটা যোগ করো\", \"ওই লাইনে লাফ দাও\"। {{print('Hello')}} CPU সরাসরি বোঝে না। তাই মাঝখানে একজন অনুবাদক লাগে, তার নাম **compiler**।",
@@ -147,12 +254,14 @@ kernel  (মাঝামাঝি রূপ: মানুষের ভাষা�
     { tip: 'compile-time error ভালো জিনিস! ভুলটা তোমার বন্ধু বা ইউজার না, তুমি নিজেই আগে দেখো। VS Code লাল দাগ দিয়ে এগুলোই দেখায়, চালানোর আগেই।' },
     { h: 'নিজের app বানাও: dart compile exe' },
     { code: 'cd ~/dart_practice\ndart compile exe hello.dart\nls\n./hello.exe', lang: 'bash', out: 'Generated: /home/rafi/dart_practice/hello.exe\nhello.dart  hello.exe\nHello, Dart!' },
+    { tip: "**Windows (PowerShell) এ**: চালাতে {{.\\hello.exe}} (ব্যাকস্ল্যাশ)। বাকি সব একই। [PowerShell টপিক](#powershell) এ terminal এর বাকি জিনিস আছে।" },
     { list: ['{{hello.exe}} এখন একটা আসল প্রোগ্রাম। ভেতরে machine code আর Dart এর ছোট একটা runtime (memory গোছানোর কাজ করে) একসাথে প্যাক করা।', '{{./hello.exe}}: {{./}} মানে "এই ফোল্ডারের"। নিরাপত্তার জন্য Linux নিজে থেকে এখনকার ফোল্ডারে প্রোগ্রাম খোঁজে না, তাই বলে দিতে হয়।', 'নিজের পছন্দের নাম দিতে {{-o}}: {{dart compile exe hello.dart -o hello}}, তারপর {{./hello}}।', 'নাম {{.exe}} হলেও Linux এ এটা Linux এর প্রোগ্রাম। নামটা শুধু Dart এর অভ্যাস।'] },
     { warn: 'যে ধরনের কম্পিউটারে compile করবে, exe শুধু সেই ধরনেই চলবে। Linux এ বানানো ফাইল Windows বা Mac এ চলবে না, কারণ প্রতিটার machine code আর নিয়ম আলাদা। Windows এর জন্য exe লাগলে Windows এ compile করো।' },
     { table: [['command', 'কী বানায়'], ['{{dart compile exe}}', 'নিজে নিজে চলা app (native machine code)'], ['{{dart compile aot-snapshot}}', 'শুধু machine code, চালাতে {{dartaotruntime}} লাগে, ফাইল ছোট'], ['{{dart compile js}}', 'JavaScript, ব্রাউজারে চলার জন্য'], ['{{dart compile wasm}}', 'WebAssembly, ব্রাউজারে আরো দ্রুত চলার জন্য']] },
     'তফাত নিজে দেখো। {{time}} লিখে তারপর command দিলে কত সময় লাগলো বলে দেয়:',
     { code: 'time dart run hello.dart\ntime ./hello.exe', lang: 'bash' },
     'দুইটার {{real}} সময় তুলনা করো। exe অনেক তাড়াতাড়ি শুরু হয়, কারণ অনুবাদ আগেই হয়ে আছে।',
+    { code: 'Measure-Command { dart run hello.dart }\nMeasure-Command { .\\hello.exe }', lang: 'powershell', out: '(Windows PowerShell এ একই কাজ: TotalMilliseconds দেখো)' },
     { h: 'Argument পাঠানো: main(List<String> args)' },
     'এতদিন {{main()}} এর ব্র্যাকেট খালি ছিল। কিন্তু main একটা List নিতে পারে। terminal এ প্রোগ্রামের নামের পরে যা লিখবে, স্পেস দিয়ে ভাগ হয়ে সেগুলো এই List এ চলে আসে। input নেওয়ার এটা আরেক উপায়: প্রোগ্রাম চলার পরে জিজ্ঞেস না করে, চালানোর সময়ই বলে দেওয়া।',
     { code: `void main(List<String> args) {
@@ -179,7 +288,7 @@ kernel  (মাঝামাঝি রূপ: মানুষের ভাষা�
 }`, out: '(dart run add.dart 7 5 দিলে)\n7 + 5 = 12' },
     { tip: 'বড় প্রোগ্রামে {{--name=Rafi}}, {{-v}} এর মতো অনেক option লাগলে Dart টিমের {{args}} package ব্যবহার করে: [pub.dev/packages/args](https://pub.dev/packages/args)।' },
     { h: 'Exit code: প্রোগ্রাম ঠিকঠাক শেষ হলো কিনা' },
-    "প্রতিটা প্রোগ্রাম শেষে একটা সংখ্যা ফেরত দেয়: **0** মানে সব ঠিক, অন্য কিছু মানে সমস্যা। Dart এ {{import 'dart:io';}} করে {{exit(1)}} দিয়ে সাথে সাথে থেমে সমস্যা জানানো যায়। terminal এ {{echo $?}} লিখলে শেষ প্রোগ্রামের exit code দেখায়।",
+    "প্রতিটা প্রোগ্রাম শেষে একটা সংখ্যা ফেরত দেয়: **0** মানে সব ঠিক, অন্য কিছু মানে সমস্যা। Dart এ {{import 'dart:io';}} করে {{exit(1)}} দিয়ে সাথে সাথে থেমে সমস্যা জানানো যায়। terminal এ {{echo $?}} লিখলে শেষ প্রোগ্রামের exit code দেখায়। Windows PowerShell এ লেখো {{$LASTEXITCODE}}।",
   ],
   how: [
     '{{dart run file.dart}} লিখলে Dart আগে পুরো ফাইল পড়ে আর check করে। ভুল থাকলে এখানেই থামে, একটা লাইনও চলে না।',
@@ -267,7 +376,7 @@ int c = 10; c.length;              // ৫`, ans: '১: **compile-time**। Strin
     default:
       print('চিহ্ন বুঝিনি: \${args[1]}');
   }
-}`, note: "{{*}} shell এর কাছে বিশেষ চিহ্ন: মানে \"এই ফোল্ডারের সব ফাইলের নাম\"। তাই {{12 * 5}} লিখলে Dart এর কাছে * এর জায়গায় ফাইলের নামগুলো পৌঁছায়! {{'*'}} এভাবে quote দিলে ঠিক থাকে, কিন্তু x সহজ।" },
+}`, note: "{{*}} shell এর কাছে বিশেষ চিহ্ন: মানে \"এই ফোল্ডারের সব ফাইলের নাম\"। তাই {{12 * 5}} লিখলে Dart এর কাছে * এর জায়গায় ফাইলের নামগুলো পৌঁছায়! {{'*'}} এভাবে quote দিলে ঠিক থাকে, কিন্তু x সহজ, আর Linux, Mac, Windows সব জায়গায় একইভাবে চলে।" },
     { l: 'h', q: 'argument এ একটা সংখ্যা নাও। মৌলিক হলে "মৌলিক" প্রিন্ট করে exit code 0, না হলে "মৌলিক না" প্রিন্ট করে exit code 1। terminal এ {{echo $?}} দিয়ে যাচাই করো।', sol: `import 'dart:io';
 
 void main(List<String> args) {
@@ -281,7 +390,7 @@ void main(List<String> args) {
   }
   print(prime ? 'মৌলিক' : 'মৌলিক না');
   exit(prime ? 0 : 1);
-}`, note: 'চালাও: {{dart run prime.dart 17}} তারপর {{echo $?}} (দেখাবে 0)। {{dart run prime.dart 15}} তারপর {{echo $?}} (দেখাবে 1)। অন্য প্রোগ্রাম বা script এই সংখ্যা দেখে বুঝে নিতে পারে কাজ সফল হলো কিনা।' },
+}`, note: 'চালাও: {{dart run prime.dart 17}} তারপর {{echo $?}} (দেখাবে 0)। {{dart run prime.dart 15}} তারপর {{echo $?}} (দেখাবে 1)। Windows PowerShell এ {{echo $?}} এর জায়গায় {{$LASTEXITCODE}}। অন্য প্রোগ্রাম বা script এই সংখ্যা দেখে বুঝে নিতে পারে কাজ সফল হলো কিনা।' },
     { l: 'h', q: 'argument হিসেবে একটা বাক্য নাও ({{dart run words.dart আমি ভাত খাই আমি পানি খাই}})। কোন শব্দ কতবার এসেছে প্রিন্ট করো।', sol: `void main(List<String> args) {
   Map<String, int> count = {};
   for (String w in args) {
@@ -293,19 +402,25 @@ void main(List<String> args) {
 };
 
 CARDS.push(
-  { w: 2, f: 'এখন কোন ফোল্ডারে আছি', b: 'pwd' },
-  { w: 2, f: 'লুকানো ফাইলসহ সব দেখাও', b: 'ls -a' },
-  { w: 2, f: 'এক ধাপ উপরে যাও / home এ যাও', b: 'cd ..\ncd ~' },
-  { w: 2, f: 'মাঝের ফোল্ডারসহ ফোল্ডার বানাও', b: 'mkdir -p a/b/c' },
-  { w: 2, f: 'ফাইলে লেখো (মুছে) / শেষে যোগ করো', b: "echo 'লেখা' > file.txt\necho 'লেখা' >> file.txt" },
-  { w: 2, f: 'ফাইলের ভেতরের লেখা দেখাও', b: 'cat file.txt' },
-  { w: 2, f: 'কপি / সরাও বা নাম বদলাও', b: 'cp a.txt b.txt\nmv a.txt b.txt' },
-  { w: 2, f: 'ভেতরের সবকিছুসহ ফোল্ডার মোছো', b: 'rm -r folder' },
-  { w: 2, f: 'চলতে থাকা প্রোগ্রাম থামাও', b: 'Ctrl + C' },
-  { w: 2, f: 'terminal থেকে Dart ফাইল চালাও', b: 'dart run main.dart' },
-  { w: 12, f: 'Dart ফাইল থেকে app বানাও (নিজের নাম দিয়ে)', b: 'dart compile exe main.dart -o app\n./app' },
-  { w: 12, f: 'argument নেয় এমন main', b: 'void main(List<String> args) { }' },
-  { w: 12, f: 'argument না দিলে থামো', b: "if (args.isEmpty) {\n  print('ব্যবহার: ...');\n  return;\n}" },
-  { w: 12, f: 'প্রথম argument কে সংখ্যা বানাও (নিরাপদে)', b: 'int? n = int.tryParse(args[0]);' },
-  { w: 12, f: 'সমস্যা জানিয়ে প্রোগ্রাম থামাও', b: "import 'dart:io';\nexit(1);" },
+  { w: 'x', f: 'এখন কোন ফোল্ডারে আছি', b: 'pwd' },
+  { w: 'x', f: 'লুকানো ফাইলসহ সব দেখাও', b: 'ls -a' },
+  { w: 'x', f: 'এক ধাপ উপরে যাও / home এ যাও', b: 'cd ..\ncd ~' },
+  { w: 'x', f: 'মাঝের ফোল্ডারসহ ফোল্ডার বানাও', b: 'mkdir -p a/b/c' },
+  { w: 'x', f: 'ফাইলে লেখো (মুছে) / শেষে যোগ করো', b: "echo 'লেখা' > file.txt\necho 'লেখা' >> file.txt" },
+  { w: 'x', f: 'ফাইলের ভেতরের লেখা দেখাও', b: 'cat file.txt' },
+  { w: 'x', f: 'কপি / সরাও বা নাম বদলাও', b: 'cp a.txt b.txt\nmv a.txt b.txt' },
+  { w: 'x', f: 'ভেতরের সবকিছুসহ ফোল্ডার মোছো', b: 'rm -r folder' },
+  { w: 'x', f: 'চলতে থাকা প্রোগ্রাম থামাও', b: 'Ctrl + C' },
+  { w: 'x', f: 'terminal থেকে Dart ফাইল চালাও', b: 'dart run main.dart' },
+  { w: 'x', f: 'PowerShell: এখন কোথায় / কী আছে', b: 'Get-Location   (pwd)\nGet-ChildItem  (ls, dir)' },
+  { w: 'x', f: 'PowerShell: খালি ফাইল বানাও', b: 'New-Item notes.txt' },
+  { w: 'x', f: 'PowerShell: ফাইলে লেখো / শেষে যোগ করো', b: "Set-Content notes.txt 'লেখা'\nAdd-Content notes.txt 'লেখা'" },
+  { w: 'x', f: 'PowerShell: নাম বদলাও', b: 'Rename-Item old.txt new.txt' },
+  { w: 'x', f: 'PowerShell: ভেতরের সবসহ ফোল্ডার মোছো', b: 'Remove-Item folder -Recurse' },
+  { w: 'x', f: 'PowerShell: কোন ছোট নাম কোন command', b: 'Get-Alias ls' },
+  { w: 'x', f: 'Dart ফাইল থেকে app বানাও (নিজের নাম দিয়ে)', b: 'dart compile exe main.dart -o app\n./app' },
+  { w: 'x', f: 'argument নেয় এমন main', b: 'void main(List<String> args) { }' },
+  { w: 'x', f: 'argument না দিলে থামো', b: "if (args.isEmpty) {\n  print('ব্যবহার: ...');\n  return;\n}" },
+  { w: 'x', f: 'প্রথম argument কে সংখ্যা বানাও (নিরাপদে)', b: 'int? n = int.tryParse(args[0]);' },
+  { w: 'x', f: 'সমস্যা জানিয়ে প্রোগ্রাম থামাও', b: "import 'dart:io';\nexit(1);" },
 );

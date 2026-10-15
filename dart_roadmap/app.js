@@ -1,7 +1,7 @@
 // ---------- data: সপ্তাহ ভাগ ----------
 const WEEKS = [
   { n: 1, title: 'ভাবতে শেখা, Output, Variable, String', ids: ['think', 'setup', 'variables', 'strings-basic'] },
-  { n: 2, title: 'অপারেটর, Terminal, Input আর Null', ids: ['operators', 'terminal', 'conversion', 'null-safety'] },
+  { n: 2, title: 'অপারেটর, Input আর Null', ids: ['operators', 'conversion', 'null-safety'] },
   { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'switch-ternary'] },
   { n: 4, title: 'Loop আর Bug খোঁজা', ids: ['for-loop', 'while-loop', 'nested-loop', 'debugging'] },
   { n: 5, title: 'Function আর Recursion', ids: ['functions-basic', 'parameters', 'arrow-function', 'recursion'] },
@@ -11,7 +11,9 @@ const WEEKS = [
   { n: 9, title: 'OOP: Class থেকে Extension', ids: ['class-object', 'inheritance', 'oop-advanced'] },
   { n: 10, title: 'Generics, Record আর Error', ids: ['generics', 'records-patterns', 'exceptions'] },
   { n: 11, title: 'JSON, Async, Stream, Isolate', ids: ['json', 'async', 'streams', 'isolates'] },
-  { n: 12, title: 'Compile, Argument আর Mini Project', ids: ['dart-compile', 'projects'] },
+  { n: 12, title: 'Mini Project', ids: ['projects'] },
+  // সপ্তাহের বাইরে: যার যখন দরকার পড়বে। n দিয়ে flashcard এর CARDS.w মেলে
+  { n: 'x', label: 'Extra', title: 'Terminal আর Compile: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'dart-compile'] },
 ];
 
 // সমস্যার লেখায় এই শব্দগুলো থাকলে "কিভাবে ভাববো?" প্যানেলে সূত্র দেখায়
@@ -47,10 +49,12 @@ const bn = n => Number(n).toLocaleString('bn-BD');
 const fmt = s => esc(s)
   .replace(/\{\{(.+?)\}\}/g, (_, c) => `<code>${c}</code>`)
   .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+  .replace(/\[([^\]]+)\]\((#[\w-]+)\)/g, '<a href="$2">$1</a>'); // সাইটের ভেতরের টপিকে লিংক
 const hl = (code, lang = 'dart') => window.hljs?.getLanguage(lang) ? hljs.highlight(code, { language: lang, ignoreIllegals: true }).value : esc(code);
-const LANG_LABEL = { bash: 'terminal', plaintext: 'text' };
+const LANG_LABEL = { bash: 'terminal', powershell: 'PowerShell', plaintext: 'text' };
 const weekOf = id => WEEKS.find(w => w.ids.includes(id));
+const wkName = w => w.label || `সপ্তাহ ${bn(w.n)}`;
 
 // ---------- progress (শুধু এই ব্রাউজারে) ----------
 const KEY = 'dart-khata-v1';
@@ -103,7 +107,7 @@ function block(b, lang) {
 // ---------- sidebar & meter ----------
 function renderSide(cur) {
   $('#side').innerHTML = `<a href="#home" class="${cur === 'home' ? 'on' : ''}">শুরু করার আগে</a><a href="#cards" class="${cur === 'cards' ? 'on' : ''}">Syntax ফ্ল্যাশকার্ড</a>` +
-    WEEKS.map(w => `<div class="wk">সপ্তাহ ${bn(w.n)}</div>` + w.ids.map(id => {
+    WEEKS.map(w => `<div class="wk">${esc(wkName(w))}</div>` + w.ids.map(id => {
       const t = TOPICS[id]; if (!t) return '';
       const d = topicDone(id), n = t.probs.length;
       return `<a href="#${id}" class="${cur === id ? 'on' : ''}"><span>${esc(t.short || t.title)}</span><span class="cnt ${d === n ? 'full' : ''}">${bn(d)}/${bn(n)}</span></a>`;
@@ -178,24 +182,29 @@ function renderHome() {
 
   <section>
     <h2>রোডম্যাপ</h2>
-    <div class="weeks">${WEEKS.map(w => {
-      const d = w.ids.reduce((a, id) => a + topicDone(id), 0), n = w.ids.reduce((a, id) => a + TOPICS[id].probs.length, 0);
-      return `<div class="wkrow ${d === n ? 'full' : d ? 'started' : ''}"><h3><span>সপ্তাহ ${bn(w.n)}</span>${esc(w.title)}</h3>
-        <div class="tps">${w.ids.map(id => `<a href="#${id}" class="${topicDone(id) === TOPICS[id].probs.length ? 'full' : ''}">${esc(TOPICS[id].short || TOPICS[id].title)} · ${bn(topicDone(id))}/${bn(TOPICS[id].probs.length)}</a>`).join('')}</div></div>`;
-    }).join('')}
+    <div class="weeks">${WEEKS.filter(w => !w.label).map(wkRow).join('')}
       <div class="wkrow"><h3><span>সপ্তাহ ১৩</span>রিভিশন</h3><p>Logic Gym আর সব কঠিন সমস্যা আবার করো, সমাধান না দেখে। তারপর Flutter শুরু করা যায়।</p></div>
+      ${WEEKS.filter(w => w.label).map(wkRow).join('')}
     </div>
   </section>
   <p class="goal">কোড চালাতে: <a href="https://dartpad.dev" target="_blank" rel="noopener">dartpad.dev</a> (ব্রাউজারেই চলে, কিছু install লাগে না)। অগ্রগতি শুধু এই ব্রাউজারে সেভ থাকে।</p>
   </div>`;
 }
 
+function wkRow(w) {
+  const d = w.ids.reduce((a, id) => a + topicDone(id), 0), n = w.ids.reduce((a, id) => a + TOPICS[id].probs.length, 0);
+  return `<div class="wkrow ${d === n ? 'full' : d ? 'started' : ''}"><h3><span>${esc(wkName(w))}</span>${esc(w.title)}</h3>
+    <div class="tps">${w.ids.map(id => `<a href="#${id}" class="${topicDone(id) === TOPICS[id].probs.length ? 'full' : ''}">${esc(TOPICS[id].short || TOPICS[id].title)} · ${bn(topicDone(id))}/${bn(TOPICS[id].probs.length)}</a>`).join('')}</div></div>`;
+}
+
 function renderTopic(id) {
-  const t = TOPICS[id], w = weekOf(id), k = ORDER.indexOf(id);
-  const prev = ORDER[k - 1], next = ORDER[k + 1];
+  const t = TOPICS[id], w = weekOf(id);
+  // আগের/পরের টপিক: সপ্তাহের টপিক আর Extra আলাদা, একটা থেকে আরেকটায় লাফ দেয় না
+  const group = WEEKS.filter(x => !x.label === !w.label).flatMap(x => x.ids), k = group.indexOf(id);
+  const prev = group[k - 1], next = group[k + 1];
   return `<article class="page">
   <header class="t-head">
-    <p class="eyebrow">সপ্তাহ ${bn(w.n)} · ${esc(t.days)}</p>
+    <p class="eyebrow">${esc(wkName(w))} · ${esc(t.days)}</p>
     <h1>${esc(t.title)}</h1>
     <p class="goal"><b>আজকের লক্ষ্য:</b> ${fmt(t.goal)}</p>
     <div class="jump"><button data-go="s-learn">শেখো</button><button data-go="s-how">কিভাবে কাজ করে</button>${t.quiz?.length ? '<button data-go="s-quiz">কুইজ</button>' : ''}<button data-go="s-prob">সমস্যা (${bn(t.probs.length)})</button></div>
@@ -249,7 +258,7 @@ function renderCards() {
   return `<div class="page"><header class="t-head"><p class="eyebrow">প্রতিদিন ৫ মিনিট</p><h1>Syntax ফ্ল্যাশকার্ড</h1>
     <p class="goal">প্রশ্ন দেখে মনে মনে বা খাতায় কোডটা লেখো, তারপর কার্ডে ক্লিক করে মিলিয়ে নাও। মনে থাকলে "মনে আছে" চাপো, সেটা পরে কম আসবে।</p></header>
     <section class="fc-wrap">
-      <div class="w-row"><select id="fc-filter" class="btn"><option value="all">সব কার্ড</option><option value="unk">শুধু যেগুলো মনে নেই</option>${WEEKS.map(w => `<option value="${w.n}">সপ্তাহ ${bn(w.n)}</option>`).join('')}</select><span class="fc-tag" id="fc-count"></span></div>
+      <div class="w-row"><select id="fc-filter" class="btn"><option value="all">সব কার্ড</option><option value="unk">শুধু যেগুলো মনে নেই</option>${WEEKS.map(w => `<option value="${w.n}">${esc(wkName(w))}</option>`).join('')}</select><span class="fc-tag" id="fc-count"></span></div>
       <button class="fc" id="fc"><div class="fc-in"><div class="fc-f" id="fc-f"></div><div class="fc-b" id="fc-b"></div></div></button>
       <div class="w-row"><button class="btn" id="fc-prev">← আগের</button><button class="btn" id="fc-shuf">এলোমেলো</button><button class="btn primary" id="fc-know">মনে আছে ✓</button><button class="btn" id="fc-next">পরের →</button></div>
     </section></div>`;
@@ -258,7 +267,7 @@ function mountCards() {
   let list = [], i = 0;
   const build = () => {
     const f = $('#fc-filter').value;
-    list = CARDS.map((c, k) => ({ ...c, k })).filter(c => f === 'all' ? true : f === 'unk' ? !S.known[c.k] : c.w === +f);
+    list = CARDS.map((c, k) => ({ ...c, k })).filter(c => f === 'all' ? true : f === 'unk' ? !S.known[c.k] : String(c.w) === f);
     i = 0; show();
   };
   const show = () => {
@@ -266,7 +275,7 @@ function mountCards() {
     if (!list.length) { $('#fc-f').textContent = 'এই তালিকায় কোনো কার্ড নেই। দারুণ!'; $('#fc-b').textContent = ''; $('#fc-count').textContent = ''; return; }
     const c = list[i];
     $('#fc-f').textContent = c.f; $('#fc-b').textContent = c.b;
-    $('#fc-count').textContent = `${bn(i + 1)} / ${bn(list.length)} · সপ্তাহ ${bn(c.w)}${S.known[c.k] ? ' · মনে আছে' : ''}`;
+    $('#fc-count').textContent = `${bn(i + 1)} / ${bn(list.length)} · ${esc(wkName(WEEKS.find(w => String(w.n) === String(c.w)) || { n: c.w }))}${S.known[c.k] ? ' · মনে আছে' : ''}`;
     $('#fc-know').textContent = S.known[c.k] ? 'আবার দেখবো' : 'মনে আছে ✓';
   };
   $('#fc').onclick = () => $('#fc').classList.toggle('flip');
@@ -560,56 +569,78 @@ const W = {
     el.innerHTML = `<div class="tablewrap"><table class="t"><thead><tr><th>a</th><th>b</th><th>a && b (দুইটাই?)</th><th>a || b (যেকোনো একটা?)</th><th>!a (উল্টো)</th></tr></thead><tbody>${r.map(([a, b]) => `<tr>${[a, b, a && b, a || b, !a].map(x => `<td class="mono" style="color:var(${x ? '--ok' : '--bad'})">${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   },
 
-  // নকল Linux terminal: ব্রাউজারের ভেতরে ছোট একটা ফাইল-গাছ, আসল কম্পিউটারে কিছু হয় না
-  termLab(el) {
-    const HOME = '/home/rafi';
+  // নকল terminal: ব্রাউজারের ভেতরে ছোট একটা ফাইল-গাছ, আসল কম্পিউটারে কিছু হয় না
+  // mode 'bash' = Linux/Mac, 'ps' = Windows PowerShell। ভেতরে path সবসময় / দিয়ে রাখা, দেখানোর সময় বদলায়
+  termLab(el, mode = 'bash') {
+    const PS = mode === 'ps';
+    const HOME = PS ? '/Users/rafi' : '/home/rafi';
     const D = c => ({ d: 1, c }), F = t => ({ t });
-    const fresh = () => D({
-      home: D({ rafi: D({
-        Documents: D({ 'notes.txt': F('বাজারের লিস্ট: ডিম, দুধ, রুটি') }),
-        Pictures: D({ 'cat.jpg': F('(এটা ছবি, লেখা না)'), 'school.jpg': F('(এটা ছবি, লেখা না)') }),
-        dart_practice: D({ 'hello.dart': F("void main() {\n  print('Hello, Dart!');\n}") }),
-        '.bashrc': F('# shell এর সেটিংস, লুকানো ফাইল'),
-      }) }),
-      etc: D({ hostname: F('pc') }),
-      bin: D({}),
+    const files = () => ({
+      Documents: D({ 'notes.txt': F('বাজারের লিস্ট: ডিম, দুধ, রুটি') }),
+      Pictures: D({ 'cat.jpg': F('(এটা ছবি, লেখা না)'), 'school.jpg': F('(এটা ছবি, লেখা না)') }),
+      dart_practice: D({ 'hello.dart': F("void main() {\n  print('Hello, Dart!');\n}") }),
     });
-    const MIS = [
-      ['{{pwd}} লিখে দেখো তুমি কোথায় আছো', (c) => c[0] === 'pwd'],
+    const fresh = () => PS
+      ? D({ Users: D({ rafi: D({ Desktop: D({}), ...files() }) }), Windows: D({ System32: D({}) }), 'Program Files': D({}) })
+      : D({ home: D({ rafi: D({ ...files(), '.bashrc': F('# shell এর সেটিংস, লুকানো ফাইল') }) }), etc: D({ hostname: F('pc') }), bin: D({}) });
+    const lc = s => String(s || '').toLowerCase();
+    const isCmd = (c, ...names) => names.includes(PS ? lc(c) : c);
+    const MIS = PS ? [
+      ['{{Get-Location}} দিয়ে দেখো তুমি কোথায় আছো', c => isCmd(c[0], 'get-location', 'gl', 'pwd')],
       ['{{dart_practice}} ফোল্ডারে ঢোকো', () => cwd === HOME + '/dart_practice'],
       ['ওখানে {{my_app}} নামে ফোল্ডার বানাও', () => get(HOME + '/dart_practice/my_app')?.d],
       ['{{my_app}} এর ভেতরে {{main.dart}} ফাইল বানাও', () => { const f = get(HOME + '/dart_practice/my_app/main.dart'); return f && !f.d; }],
-      ['{{hello.dart}} এর ভেতরে কী লেখা আছে দেখো', (c) => c[0] === 'cat' && c.some(a => a.endsWith('hello.dart'))],
+      ['{{hello.dart}} এর ভেতরে কী লেখা আছে দেখো', c => isCmd(c[0], 'get-content', 'gc', 'cat', 'type') && c.some(a => lc(a).endsWith('hello.dart'))],
       ['{{notes.txt}} এর একটা কপি বানাও, নাম {{backup.txt}}', () => find(root, 'backup.txt')],
-      ['লুকানো ফাইলসহ home এর সব দেখো', (c) => c[0] === 'ls' && c.some(a => /^-\w*a/.test(a))],
+      ['{{backup.txt}} এর নাম বদলে {{old.txt}} করো', () => find(root, 'old.txt')],
+      ['{{Pictures}} ফোল্ডারটা পুরোটা মুছে ফেলো', () => !get(HOME + '/Pictures')],
+    ] : [
+      ['{{pwd}} লিখে দেখো তুমি কোথায় আছো', c => c[0] === 'pwd'],
+      ['{{dart_practice}} ফোল্ডারে ঢোকো', () => cwd === HOME + '/dart_practice'],
+      ['ওখানে {{my_app}} নামে ফোল্ডার বানাও', () => get(HOME + '/dart_practice/my_app')?.d],
+      ['{{my_app}} এর ভেতরে {{main.dart}} ফাইল বানাও', () => { const f = get(HOME + '/dart_practice/my_app/main.dart'); return f && !f.d; }],
+      ['{{hello.dart}} এর ভেতরে কী লেখা আছে দেখো', c => c[0] === 'cat' && c.some(a => a.endsWith('hello.dart'))],
+      ['{{notes.txt}} এর একটা কপি বানাও, নাম {{backup.txt}}', () => find(root, 'backup.txt')],
+      ['লুকানো ফাইলসহ home এর সব দেখো', c => c[0] === 'ls' && c.some(a => /^-\w*a/.test(a))],
       ['{{Pictures}} ফোল্ডারটা পুরোটা মুছে ফেলো', () => !get(HOME + '/Pictures')],
     ];
     let root, cwd, hist, hi, done;
-    el.innerHTML = `<div class="widget"><div class="w-title">নকল Terminal</div>
-      <p>${fmt('এখানে যা খুশি লেখো, কিছু নষ্ট হবে না। {{help}} লিখলে সব command দেখাবে। **Tab** চাপলে নাম নিজে পূর্ণ হয়, **↑** চাপলে আগের command ফেরত আসে।')}</p>
+    const intro = PS
+      ? 'এখানে যা খুশি লেখো, কিছু নষ্ট হবে না। {{help}} লিখলে সব command দেখাবে। বড়-ছোট হাতের অক্ষর এখানে কোনো ব্যাপার না। **Tab** চাপলে নাম নিজে পূর্ণ হয়, **↑** চাপলে আগের command ফেরত আসে।'
+      : 'এখানে যা খুশি লেখো, কিছু নষ্ট হবে না। {{help}} লিখলে সব command দেখাবে। **Tab** চাপলে নাম নিজে পূর্ণ হয়, **↑** চাপলে আগের command ফেরত আসে।';
+    el.innerHTML = `<div class="widget"><div class="w-title">${PS ? 'নকল PowerShell (Windows)' : 'নকল Terminal (Linux)'}</div>
+      <p>${fmt(intro)}</p>
       <div class="term"><div class="term-out"></div><label class="term-in"><span class="ps"></span><input spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="command লেখো"></label></div>
       <div class="term-mis"><b>মিশন</b> (উপর থেকে নিচে করো)<ol>${MIS.map(m => `<li>${fmt(m[0])}</li>`).join('')}</ol></div>
       <div class="w-row"><button class="btn" data-t="reset">শুরু থেকে</button></div></div>`;
     const out = $('.term-out', el), inp = $('input', el), ps = $('.term-in .ps', el), lis = el.querySelectorAll('.term-mis li');
 
-    // path: ~ আর relative path কে পূর্ণ path বানাও, . আর .. বুঝে
+    // path: ~ আর relative path কে পূর্ণ path বানাও, . আর .. বুঝে। Windows এ \ আর C: ও চলে
     const abs = p => {
+      if (PS) { p = p.replace(/\\/g, '/'); if (/^[a-z]:/i.test(p)) p = '/' + p.slice(2); }
       if (p.startsWith('~')) p = HOME + p.slice(1);
       else if (!p.startsWith('/')) p = cwd + '/' + p;
       const parts = [];
       for (const x of p.split('/')) { if (x === '..') parts.pop(); else if (x && x !== '.') parts.push(x); }
       return '/' + parts.join('/');
     };
-    const get = p => p.split('/').filter(Boolean).reduce((n, x) => n?.d ? n.c[x] : undefined, root);
-    const split = p => { const i = p.lastIndexOf('/'); return [get(p.slice(0, i) || '/'), p.slice(i + 1)]; };
-    const find = (n, name) => n.d && Object.entries(n.c).some(([k, v]) => k === name || find(v, name));
-    const pretty = p => p === HOME ? '~' : p.startsWith(HOME + '/') ? '~' + p.slice(HOME.length) : p;
+    // Windows এ নাম বড়-ছোট হাতের অক্ষর মানে না, তাই আসল key খুঁজে বের করো
+    const key = (n, x) => !n?.d ? undefined : PS ? Object.keys(n.c).find(k => lc(k) === lc(x)) : (x in n.c ? x : undefined);
+    const get = p => p.split('/').filter(Boolean).reduce((n, x) => { const k = key(n, x); return k === undefined ? undefined : n.c[k]; }, root);
+    // [parent ফোল্ডার, নাম (আগে থেকে থাকলে আসল নাম)]
+    const split = p => { const i = p.lastIndexOf('/'), par = get(p.slice(0, i) || '/'), nm = p.slice(i + 1); return [par, key(par, nm) ?? nm]; };
+    const find = (n, name) => n.d && Object.entries(n.c).some(([k, v]) => (PS ? lc(k) === lc(name) : k === name) || find(v, name));
+    const pretty = p => PS ? 'C:' + (p === '/' ? '\\' : p.replace(/\//g, '\\'))
+      : p === HOME ? '~' : p.startsWith(HOME + '/') ? '~' + p.slice(HOME.length) : p;
     const clone = n => n.d ? D(Object.fromEntries(Object.entries(n.c).map(([k, v]) => [k, clone(v)]))) : F(n.t);
-    const prompt = () => `rafi@pc:${pretty(cwd)}$`;
+    const prompt = () => PS ? `PS ${pretty(cwd)}>` : `rafi@pc:${pretty(cwd)}$`;
+    const dirSpan = k => `<span class="dir">${esc(k)}</span>`;
     const print = (html, cls = '') => {
       const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = html; out.append(d);
       while (out.children.length > 300) out.firstChild.remove();
     };
+    const mkdirs = p => p.split('/').filter(Boolean).reduce((n, x) => { if (!n?.d) return n; const k = key(n, x) ?? x; return n.c[k] ||= D({}); }, root);
+    const protectedPath = p => HOME.startsWith(p) || (PS && lc(HOME).startsWith(lc(p)));
 
     const run = line => {
       const toks = (line.match(/"[^"]*"|'[^']*'|\S+/g) || []).map(t => t.replace(/^(["'])(.*)\1$/, '$2'));
@@ -617,8 +648,40 @@ const W = {
       const r = toks.findIndex(t => t === '>' || t === '>>');
       if (r > -1) { redir = [toks[r], toks[r + 1]]; toks.splice(r); }
       const [cmd, ...args] = toks;
-      const flags = args.filter(a => /^-\w/.test(a)).join(''), names = args.filter(a => !/^-\w/.test(a));
       const res = [], err = m => res.push([esc(m), 'err']), say = (m, cls = '') => res.push([m, cls]);
+      if (!cmd) return;
+      (PS ? runPS : runBash)(cmd, args, say, err);
+
+      if (redir) {
+        const [op, f] = redir, [par, name] = f ? split(abs(f)) : [];
+        const text = res.filter(r => r[1] !== 'err').map(r => r[0].replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&')).join('\n');
+        if (!f) err(PS ? 'ParserError: Missing file specification after redirection operator.' : 'bash: syntax error: > এর পরে ফাইলের নাম লাগবে');
+        else if (!par?.d) err(PS ? `Out-File: Could not find a part of the path '${pretty(abs(f))}'.` : `bash: ${f}: No such file or directory`);
+        else if (par.c[name]?.d) err(PS ? `Out-File: Access to the path '${pretty(abs(f))}' is denied.` : `bash: ${f}: Is a directory`);
+        else { const old = op === '>>' && par.c[name]?.t; par.c[name] = F(old ? old + '\n' + text : text); }
+        res.splice(0, res.length, ...res.filter(r => r[1] === 'err'));
+      }
+      res.forEach(([m, cls]) => print(m, cls));
+      return toks;
+    };
+
+    // ---- Linux (bash) ----
+    const runBash = (cmd, args, say, err) => {
+      const flags = args.filter(a => /^-\w/.test(a)).join(''), names = args.filter(a => !/^-\w/.test(a));
+      const move = copy => {
+        const name = copy ? 'cp' : 'mv';
+        if (names.length !== 2) return err(`${name}: দুইটা নাম লাগবে, যেমন: ${name} notes.txt backup.txt`);
+        const [a, b] = names, pa = abs(a), node = get(pa);
+        if (!node) return err(`${name}: cannot stat '${a}': No such file or directory`);
+        if (copy && node.d && !flags.includes('r')) return err(`cp: -r not specified; omitting directory '${a}'`);
+        let pb = abs(b);
+        if (get(pb)?.d) pb += '/' + pa.split('/').pop();
+        if (!copy && (pb + '/').startsWith(pa + '/')) return err(`mv: cannot move '${a}' to a subdirectory of itself`);
+        const [par, nm] = split(pb);
+        if (!par?.d) return err(`${name}: cannot create '${b}': No such file or directory`);
+        par.c[nm] = copy ? clone(node) : node;
+        if (!copy) { const [op, on] = split(pa); if (op !== par || on !== nm) delete op.c[on]; }
+      };
       const C = {
         help: () => say(esc([
           'pwd              এখন কোথায় আছি', 'ls [-a] [-l] [ফোল্ডার]  কী কী আছে', 'cd ফোল্ডার       ঢোকো (cd .. = এক ধাপ উপরে, cd ~ = home)',
@@ -634,14 +697,14 @@ const W = {
         echo: () => say(esc(names.join(' '))),
         ls: () => {
           for (const n of names.length ? names : ['.']) {
-            const p = abs(n), node = get(p);
+            const node = get(abs(n));
             if (!node) { err(`ls: cannot access '${n}': No such file or directory`); continue; }
             if (names.length > 1) say(esc(n + ':'));
             const items = node.d ? Object.keys(node.c).sort().filter(k => flags.includes('a') || !k.startsWith('.')) : [n];
             if (node.d && flags.includes('a')) items.unshift('.', '..');
             const isDir = k => !node.d ? false : k === '.' || k === '..' || node.c[k]?.d;
-            if (flags.includes('l')) items.forEach(k => say(`${isDir(k) ? 'drwxr-xr-x' : '-rw-r--r--'}  rafi  ${isDir(k) ? `<span class="dir">${esc(k)}</span>` : esc(k)}`));
-            else if (items.length) say(items.map(k => isDir(k) ? `<span class="dir">${esc(k)}</span>` : esc(k)).join('  '));
+            if (flags.includes('l')) items.forEach(k => say(`${isDir(k) ? 'drwxr-xr-x' : '-rw-r--r--'}  rafi  ${isDir(k) ? dirSpan(k) : esc(k)}`));
+            else if (items.length) say(items.map(k => isDir(k) ? dirSpan(k) : esc(k)).join('  '));
           }
         },
         cd: () => {
@@ -655,7 +718,7 @@ const W = {
           for (const n of names) {
             const p = abs(n);
             if (get(p)) { err(`mkdir: cannot create directory '${n}': File exists`); continue; }
-            if (flags.includes('p')) { p.split('/').filter(Boolean).reduce((node, x) => node?.d ? (node.c[x] ||= D({})) : node, root); continue; }
+            if (flags.includes('p')) { mkdirs(p); continue; }
             const [par, name] = split(p);
             if (!par?.d) err(`mkdir: cannot create directory '${n}': No such file or directory`); else par.c[name] = D({});
           }
@@ -680,7 +743,7 @@ const W = {
             const p = abs(n), node = get(p), [par, name] = split(p);
             if (!node) err(`rm: cannot remove '${n}': No such file or directory`);
             else if (node.d && !flags.includes('r')) err(`rm: cannot remove '${n}': Is a directory`);
-            else if (HOME.startsWith(p)) err(`rm: '${n}' মুছলে তোমার home ই থাকবে না! এটা করতে দিচ্ছি না।`);
+            else if (protectedPath(p)) err(`rm: '${n}' মুছলে তোমার home ই থাকবে না! এটা করতে দিচ্ছি না।`);
             else delete par.c[name];
           }
         },
@@ -696,54 +759,168 @@ const W = {
         cp: () => move(true),
         mv: () => move(false),
       };
-      const move = copy => {
-        const name = copy ? 'cp' : 'mv';
-        if (names.length !== 2) return err(`${name}: দুইটা নাম লাগবে, যেমন: ${name} notes.txt backup.txt`);
-        const [a, b] = names, pa = abs(a), node = get(pa);
-        if (!node) return err(`${name}: cannot stat '${a}': No such file or directory`);
-        if (copy && node.d && !flags.includes('r')) return err(`cp: -r not specified; omitting directory '${a}'`);
-        let pb = abs(b);
-        if (get(pb)?.d) pb += '/' + pa.split('/').pop();
-        if (!copy && (pb + '/').startsWith(pa + '/')) return err(`mv: cannot move '${a}' to a subdirectory of itself`);
-        const [par, nm] = split(pb);
-        if (!par?.d) return err(`${name}: cannot create '${b}': No such file or directory`);
-        par.c[nm] = copy ? clone(node) : node;
-        if (!copy) { const [op, on] = split(pa); if (op !== par || on !== nm) delete op.c[on]; }
-      };
-
-      if (!cmd) return;
       if (cmd === 'dart' || cmd === 'code' || cmd === 'nano') err(`এটা নকল terminal, এখানে ${cmd} নেই। নিজের কম্পিউটারের terminal এ চালাও।`);
       else if (cmd === 'sudo') err('sudo মানে admin এর ক্ষমতা। নকল terminal এ লাগে না, আসলটাতেও খুব সাবধানে।');
       else if (C[cmd]) C[cmd]();
       else err(`${cmd}: command not found`);
+    };
 
-      if (redir) {
-        const [op, f] = redir, [par, name] = f ? split(abs(f)) : [];
-        const text = res.filter(r => r[1] !== 'err').map(r => r[0].replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&')).join('\n');
-        if (!f) err('bash: syntax error: > এর পরে ফাইলের নাম লাগবে');
-        else if (!par?.d) err(`bash: ${f}: No such file or directory`);
-        else if (par.c[name]?.d) err(`bash: ${f}: Is a directory`);
-        else { const old = op === '>>' && par.c[name]?.t; par.c[name] = F(old ? old + '\n' + text : text); }
-        res.splice(0, res.length, ...res.filter(r => r[1] === 'err'));
+    // ---- Windows PowerShell ----
+    const ALIAS = {
+      pwd: 'Get-Location', gl: 'Get-Location', ls: 'Get-ChildItem', dir: 'Get-ChildItem', gci: 'Get-ChildItem',
+      cd: 'Set-Location', sl: 'Set-Location', chdir: 'Set-Location', md: 'mkdir', ni: 'New-Item',
+      cat: 'Get-Content', gc: 'Get-Content', type: 'Get-Content', echo: 'Write-Output', write: 'Write-Output',
+      cp: 'Copy-Item', copy: 'Copy-Item', cpi: 'Copy-Item', mv: 'Move-Item', move: 'Move-Item', mi: 'Move-Item',
+      ren: 'Rename-Item', rni: 'Rename-Item', rm: 'Remove-Item', del: 'Remove-Item', erase: 'Remove-Item', rd: 'Remove-Item', rmdir: 'Remove-Item', ri: 'Remove-Item',
+      cls: 'Clear-Host', clear: 'Clear-Host', h: 'Get-History', history: 'Get-History', ghy: 'Get-History', gal: 'Get-Alias',
+    };
+    const VALUE_P = ['path', 'itemtype', 'name', 'value', 'destination', 'newname'], SWITCH_P = ['recurse', 'force'];
+    const runPS = (cmd, args, say, err) => {
+      const real = ALIAS[lc(cmd)] || cmd, c = lc(real);
+      // -Rec, -r, -Recurse সব একই: নামের শুরুটা মিললেই চলে (যদি একটাই মেলে)
+      const pos = [], opt = {};
+      for (let i = 0; i < args.length; i++) {
+        const a = args[i];
+        if (!/^-[a-z]/i.test(a)) { pos.push(a); continue; }
+        const f = lc(a.slice(1)), hits = [...VALUE_P, ...SWITCH_P].filter(n => n.startsWith(f));
+        if (hits.length !== 1) return err(`${real}: ${hits.length ? `Parameter cannot be processed because the parameter name '${a.slice(1)}' is ambiguous.` : `A parameter cannot be found that matches parameter name '${a.slice(1)}'.`}`);
+        if (SWITCH_P.includes(hits[0])) opt[hits[0]] = true; else opt[hits[0]] = args[++i];
       }
-      res.forEach(([m, cls]) => print(m, cls));
-      return toks;
+      const full = p => pretty(abs(p));
+      const notFound = (who, p) => err(`${who}: Cannot find path '${full(p)}' because it does not exist.`);
+      const row = (n, k) => `${n.d ? 'd----' : '-a---'}  ${n.d ? dirSpan(k) : esc(k)}`;
+      const table = (dirPath, rows) => { say(`\n    Directory: ${esc(pretty(dirPath))}\n\nMode   Name\n----   ----`, 'dim'); rows.forEach(r => say(r)); };
+      const made = p => { const [par, nm] = split(p); table(p.slice(0, p.lastIndexOf('/')) || '/', [row(par.c[nm], nm)]); };
+      const newItem = (p, dir, value) => {
+        if (get(p)) return err(`New-Item: An item with the specified name ${pretty(p)} already exists.`);
+        if (dir) { mkdirs(p); return made(p); }
+        const [par, nm] = split(p);
+        if (!par?.d) return err(`New-Item: Could not find a part of the path '${pretty(p)}'.`);
+        par.c[nm] = F(value ?? ''); made(p);
+      };
+      const moveItem = (copy) => {
+        const who = copy ? 'Copy-Item' : 'Move-Item', a = opt.path ?? pos[0], b = opt.destination ?? pos[1];
+        if (!a || !b) return err(`${who}: দুইটা নাম লাগবে, যেমন: ${copy ? 'Copy-Item' : 'Move-Item'} notes.txt backup.txt`);
+        const pa = abs(a), node = get(pa);
+        if (!node) return notFound(who, a);
+        let pb = abs(b);
+        if (get(pb)?.d) pb += '/' + split(pa)[1];
+        if (!copy && (lc(pb) + '/').startsWith(lc(pa) + '/')) return err(`Move-Item: Cannot move item because the item at '${pretty(pa)}' is in use.`);
+        const [par, nm] = split(pb);
+        if (!par?.d) return err(`${who}: Could not find a part of the path '${pretty(pb)}'.`);
+        par.c[nm] = copy ? (node.d && !opt.recurse ? D({}) : clone(node)) : node;
+        if (!copy) { const [op, on] = split(pa); if (op !== par || on !== nm) delete op.c[on]; }
+      };
+      const setContent = add => {
+        const who = add ? 'Add-Content' : 'Set-Content', f = opt.path ?? pos[0], v = opt.value ?? pos.slice(1).join(' ');
+        if (!f) return err(`${who}: কোন ফাইলে? যেমন: ${who} notes.txt 'লেখা'`);
+        const [par, nm] = split(abs(f));
+        if (!par?.d) return err(`${who}: Could not find a part of the path '${full(f)}'.`);
+        if (par.c[nm]?.d) return err(`${who}: Access to the path '${full(f)}' is denied.`);
+        const old = add && par.c[nm]?.t;
+        par.c[nm] = F(old ? old + '\n' + v : v);
+      };
+      const C = {
+        help: () => say(esc([
+          'Get-Location        (pwd)         এখন কোথায় আছি', 'Get-ChildItem       (ls, dir)     কী কী আছে', 'Set-Location ফোল্ডার (cd)       ঢোকো (cd .. = উপরে, cd ~ = home)',
+          'mkdir নাম                         ফোল্ডার বানাও (মাঝেরগুলোসহ)', 'New-Item নাম        (ni)          খালি ফাইল বানাও',
+          'Get-Content ফাইল    (cat, type)   ফাইলের লেখা দেখাও', "Set-Content ফাইল 'লেখা'           ফাইলে লেখো (আগেরটা মুছে)", "Add-Content ফাইল 'লেখা'           শেষে যোগ করো",
+          'echo লেখা > ফাইল, >> ফাইল          একই কাজ, ছোট করে', 'Copy-Item উৎস গন্তব্য (cp, copy)   কপি (ফোল্ডার হলে -Recurse)',
+          'Move-Item উৎস গন্তব্য (mv, move)   সরাও', 'Rename-Item পুরানো নতুন (ren)     নাম বদলাও', 'Remove-Item নাম     (rm, del)     মুছো (ফোল্ডার হলে -Recurse)',
+          'Get-Alias ls, Get-History, Clear-Host (cls), whoami',
+        ].join('\n')), 'dim'),
+        'get-location': () => say(`\nPath\n----\n${esc(pretty(cwd))}\n`),
+        whoami: () => say('pc\\rafi'),
+        'get-history': () => { say('\n  Id CommandLine\n  -- -----------', 'dim'); hist.forEach((h, i) => say(esc(`${String(i + 1).padStart(4)} ${h}`))); },
+        'clear-host': () => { out.innerHTML = ''; },
+        'write-output': () => pos.forEach(x => say(esc(x))),
+        'get-alias': () => Object.entries(ALIAS).filter(([k]) => !pos.length || pos.some(p => lc(p) === k)).forEach(([k, v]) => say(esc(`Alias   ${k} -> ${v}`))),
+        'get-childitem': () => {
+          const t = opt.path ?? pos[0] ?? '.', p = abs(t), node = get(p);
+          if (!node) return notFound('Get-ChildItem', t);
+          if (!node.d) return table(p.slice(0, p.lastIndexOf('/')) || '/', [row(node, split(p)[1])]);
+          const ks = Object.keys(node.c).sort((a, b) => (node.c[b].d || 0) - (node.c[a].d || 0) || lc(a).localeCompare(lc(b)));
+          if (ks.length) table(p, ks.map(k => row(node.c[k], k)));
+        },
+        'set-location': () => {
+          const t = opt.path ?? pos[0] ?? '~', p = abs(t), node = get(p);
+          if (pos.length > 1) return err(`Set-Location: A positional parameter cannot be found that accepts argument '${pos[1]}'.`);
+          if (!node || !node.d) return notFound('Set-Location', t);
+          // আসল নামের বানানে cwd রাখো (documents লিখলেও Documents দেখাবে)
+          cwd = '/' + p.split('/').filter(Boolean).reduce((acc, x) => { const n = get('/' + acc.join('/')); acc.push(key(n, x)); return acc; }, []).join('/');
+          if (cwd === '//') cwd = '/';
+        },
+        mkdir: () => {
+          const list = opt.path ? [opt.path] : pos;
+          if (!list.length) return err('mkdir: কোন নামে? যেমন: mkdir khata');
+          list.forEach(n => newItem(abs(n), true));
+        },
+        'new-item': () => {
+          let t = opt.path ?? pos[0];
+          if (opt.name) t = (t ?? '.') + '/' + opt.name;
+          if (!t) return err("New-Item: কোন নামে? যেমন: New-Item notes.txt");
+          const ty = lc(opt.itemtype || 'file');
+          if (!'directory'.startsWith(ty) && !'file'.startsWith(ty)) return err(`New-Item: The type '${opt.itemtype}' is not valid. এখানে চলবে: File বা Directory`);
+          newItem(abs(t), 'directory'.startsWith(ty), opt.value);
+        },
+        'get-content': () => {
+          const list = opt.path ? [opt.path] : pos;
+          if (!list.length) return err('Get-Content: কোন ফাইল? যেমন: Get-Content notes.txt');
+          for (const f of list) {
+            const node = get(abs(f));
+            if (!node) notFound('Get-Content', f);
+            else if (node.d) err(`Get-Content: Unable to get content because it is a directory: '${full(f)}'. Please use 'Get-ChildItem' instead.`);
+            else if (node.t) say(esc(node.t));
+          }
+        },
+        'set-content': () => setContent(false),
+        'add-content': () => setContent(true),
+        'copy-item': () => moveItem(true),
+        'move-item': () => moveItem(false),
+        'rename-item': () => {
+          const a = opt.path ?? pos[0], b = opt.newname ?? pos[1];
+          if (!a || !b) return err('Rename-Item: দুইটা নাম লাগবে, যেমন: Rename-Item notes.txt diary.txt');
+          if (/[\\/]/.test(b)) return err('Rename-Item: Cannot rename the specified target, because it represents a path or device name.');
+          const pa = abs(a), node = get(pa);
+          if (!node) return notFound('Rename-Item', a);
+          const [par, nm] = split(pa), k2 = key(par, b);
+          if (k2 !== undefined && k2 !== nm) return err('Rename-Item: Cannot create a file when that file already exists.');
+          delete par.c[nm]; par.c[b] = node;
+        },
+        'remove-item': () => {
+          const list = opt.path ? [opt.path] : pos;
+          if (!list.length) return err('Remove-Item: কোনটা মুছবো? যেমন: Remove-Item notes.txt');
+          for (const n of list) {
+            const p = abs(n), node = get(p), [par, nm] = split(p);
+            if (!node) notFound('Remove-Item', n);
+            else if (protectedPath(p)) err(`Remove-Item: '${full(n)}' মুছলে তোমার নিজের ফোল্ডারই থাকবে না! এটা করতে দিচ্ছি না।`);
+            else if (node.d && Object.keys(node.c).length && !opt.recurse) err(`Remove-Item: The item at ${full(n)} has children and the Recurse parameter was not specified. (আসল PowerShell এখানে Y/N জিজ্ঞেস করে। এখানে -Recurse লিখে আবার চালাও।)`);
+            else delete par.c[nm];
+          }
+        },
+      };
+      if (['dart', 'code', 'notepad'].includes(lc(cmd))) err(`এটা নকল PowerShell, এখানে ${cmd} নেই। নিজের কম্পিউটারের PowerShell এ চালাও।`);
+      else if (C[c]) C[c]();
+      else {
+        err(`${cmd}: The term '${cmd}' is not recognized as a name of a cmdlet, function, script file, or executable program.\nCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.`);
+        if (lc(cmd) === 'touch') say('PowerShell এ touch নেই। খালি ফাইল বানাতে: New-Item notes.txt', 'dim');
+      }
     };
 
     const check = toks => MIS.forEach(([, ok], i) => { if (!done[i] && ok(toks || [])) { done[i] = 1; lis[i].classList.add('ok'); } });
     const reset = () => {
       root = fresh(); cwd = HOME; hist = []; hi = 0; done = [];
       lis.forEach(l => l.classList.remove('ok'));
-      out.innerHTML = ''; print('নকল terminal চালু। শুরু করতে help লেখো।', 'dim'); ps.textContent = prompt();
+      out.innerHTML = ''; print(`নকল ${PS ? 'PowerShell' : 'terminal'} চালু। শুরু করতে help লেখো।`, 'dim'); ps.textContent = prompt();
     };
     // Tab: শেষ শব্দের শুরুটা মিলিয়ে নাম পূর্ণ করো
     const complete = () => {
-      const v = inp.value, m = v.match(/(\S*)$/), word = m[1], slash = word.lastIndexOf('/');
+      const v = inp.value, word = v.match(/(\S*)$/)[1], slash = Math.max(word.lastIndexOf('/'), PS ? word.lastIndexOf('\\') : -1);
       const dirPart = word.slice(0, slash + 1), pre = word.slice(slash + 1), dir = get(abs(dirPart || '.'));
       if (!dir?.d) return;
-      const hits = Object.keys(dir.c).filter(k => k.startsWith(pre) && (pre.startsWith('.') || !k.startsWith('.')));
-      if (hits.length === 1) inp.value = v.slice(0, v.length - word.length) + dirPart + hits[0] + (dir.c[hits[0]].d ? '/' : ' ');
-      else if (hits.length > 1) { print(`<span class="ps">${esc(prompt())}</span> ${esc(v)}`); print(hits.map(k => dir.c[k].d ? `<span class="dir">${esc(k)}</span>` : esc(k)).join('  ')); out.scrollTop = out.scrollHeight; }
+      const hits = Object.keys(dir.c).filter(k => (PS ? lc(k).startsWith(lc(pre)) : k.startsWith(pre)) && (pre.startsWith('.') || !k.startsWith('.')));
+      if (hits.length === 1) inp.value = v.slice(0, v.length - word.length) + dirPart + hits[0] + (dir.c[hits[0]].d ? (PS ? '\\' : '/') : ' ');
+      else if (hits.length > 1) { print(`<span class="ps">${esc(prompt())}</span> ${esc(v)}`); print(hits.map(k => dir.c[k].d ? dirSpan(k) : esc(k)).join('  ')); out.scrollTop = out.scrollHeight; }
     };
     inp.onkeydown = e => {
       if (e.key === 'Enter') {
@@ -762,6 +939,8 @@ const W = {
     $('[data-t=reset]', el).onclick = reset;
     reset();
   },
+
+  psLab(el) { W.termLab(el, 'ps'); },
 };
 
 // ---------- router ----------
