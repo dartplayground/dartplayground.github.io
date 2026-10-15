@@ -1,0 +1,12 @@
+{
+  "name": "Dart শেখার খাতা",
+  "short_name": "Dart খাতা",
+  "description": "বাংলায় Dart প্রোগ্রামিং শেখার রোডম্যাপ",
+  "lang": "bn",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF2F6",
+  "theme_color": "#0466AE",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

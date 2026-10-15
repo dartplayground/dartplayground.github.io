@@ -6,6 +6,9 @@
 <style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Dart শেখার খাতা</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0466AE">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -217,6 +220,33 @@ table.t tr:last-child td { border-bottom: 0; }
 .term .gid { color: var(--hl-fn); }
 .term .gplus { color: var(--hl-str); }
 @media (max-width: 860px) { .git-viz { grid-template-columns: minmax(0, 1fr); } .garrow::after { content: ' ↓'; } }
+.cb-act { display: flex; gap: 6px; }
+.code-bar button[data-act=run] { border-color: var(--hl-str); color: var(--hl-str); }
+.runbox { display: grid; gap: 6px; }
+.runbox iframe { width: 100%; height: 440px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.theme-btn { display: inline-block !important; white-space: nowrap; font-size: .85rem; }
+.daily { background: var(--surface); border: 2px solid var(--teal); border-radius: 14px; padding: 16px; }
+.wkrow .tps a.tlink { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.test .q.done .opts button { cursor: default; }
+.kb { display: grid; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.kb-row { display: flex; gap: 4px; }
+.kb-key { min-width: 2.3em; height: 2.6em; border: 1px solid var(--line); border-radius: 6px; background: var(--surface2); display: grid; place-items: center; line-height: 1; font-family: var(--f-mono); font-size: .85rem; padding: 2px 4px; color: var(--muted); }
+.kb-key small { font-size: .7rem; }
+.kb-key.hot { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.kb-key.wide { min-width: 4em; font-family: var(--f-body); }
+.widget .kb-in { width: 4em; text-align: center; }
+.widget .kb-in.bad { border-color: var(--bad); background: var(--bad-soft); }
+.kb-target { font-size: 1.15rem; }
+.bh-line { cursor: pointer; }
+.bh-line:hover { background: var(--code-hl); }
+.bh-line.ok { background: color-mix(in srgb, var(--ok) 35%, transparent); border-left-color: var(--ok); }
+.bh-line.no { background: color-mix(in srgb, var(--bad) 30%, transparent); border-left-color: var(--bad); }
+.gl-list { display: grid; gap: 8px; max-height: 560px; overflow-y: auto; }
+.gl-row { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; background: var(--surface2); display: grid; gap: 4px; }
+.gl-h { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.gl-h b.mono { font-size: 1.05rem; color: var(--accent); }
+.gl-ex { justify-self: start; }
+.prob p.goal code { white-space: pre; display: inline-block; vertical-align: top; max-width: 100%; overflow-x: auto; }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -332,6 +362,17 @@ table.t tr:last-child td { border-bottom: 0; }
   .tr-grid { grid-template-columns: minmax(0, 1fr); }
   .bar .meter .txt { display: none; }
 }
+/* প্রিন্ট: শুধু পড়ার অংশ আর সমস্যা, খাতার মতো */
+@media print {
+  .bar, nav.side, .jump, .pfilter, .pact, .pager, .runbox, .tr-ctrl, [data-widget], .code-bar button, .callout .cta, .ladder, .gate { display: none !important; }
+  .app { display: block; } main { padding: 0; } body { background: #fff; color: #000; font-size: 12pt; }
+  .prob, .q, .code, .note, .vis, .tablewrap, .trace { break-inside: avoid; }
+  .prob { border: 1px solid #999; }
+  .prob::after { content: ''; display: block; height: 5em; border-top: 1px dashed #bbb; margin-top: 8px; } /* খাতায় লেখার জায়গা */
+  body.print-sol .prob .solbox[hidden], body.print-sol .prob .hint[hidden], body.print-sol .q .why[hidden] { display: block !important; }
+  body.print-sol .prob::after { display: none; }
+  a { color: inherit; text-decoration: none; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
@@ -341,6 +382,7 @@ table.t tr:last-child td { border-bottom: 0; }
   <button class="menu-btn" id="menu-btn" aria-label="সূচি খোলো">সূচি</button>
   <a class="brand" href="#home"><span class="dart">D</span>Dart শেখার খাতা</a>
   <div class="meter"><div class="track"><div class="fill" id="meter-fill"></div></div><span class="txt" id="meter-txt"></span></div>
+  <button class="menu-btn theme-btn" id="theme-btn" aria-label="থিম বদলাও">◐ অটো</button>
 </header>
 <div class="app">
   <nav class="side" id="side"></nav>
@@ -357,9 +399,11 @@ table.t tr:last-child td { border-bottom: 0; }
 <script src="content4.js?v=991710f4"></script>
 <script src="content5.js?v=47466842"></script>
 <script src="content6.js?v=d93e70c4"></script>
-<script src="content7.js?v=29a03a7f"></script>
-<script src="content8.js?v=579d5d4d"></script>
+<script src="content7.js?v=961c4c43"></script>
+<script src="content8.js?v=02c57b06"></script>
 <script src="content9.js?v=c57b9215"></script>
-<script src="app.js?v=5fb6b740"></script>
+<script src="content10.js?v=daef67ff"></script>
+<script src="content11.js?v=79742b51"></script>
+<script src="app.js?v=2f965c02"></script>
 </body>
 </html>

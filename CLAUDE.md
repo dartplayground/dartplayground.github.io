@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A static, no-framework, no-dependency Bangla-language Dart learning roadmap site ("Dart শেখার খাতা"), hosted on GitHub Pages from `docs/`. All learner-facing text is in Bangla; Dart keywords and code stay in English. There is no package manager, linter, or test suite.
+A static, no-framework, no-dependency Bangla-language Dart learning roadmap site ("Dart শেখার খাতা"), hosted on GitHub Pages from `docs/`. All learner-facing text is in Bangla; Dart keywords and code stay in English. There is no package manager or build tooling beyond `build.sh`.
 
 ## Source vs. build output
 
@@ -14,22 +14,36 @@ A static, no-framework, no-dependency Bangla-language Dart learning roadmap site
   sh build.sh
   ```
   `build.sh` copies the `.js` files, appends `?v=<content hash>` to each `<script src>` (cache-busting; GitHub Pages caches for 10 minutes), and wraps `index.html` in a full document skeleton. It inserts `</head><body>` right before the line starting with `<header class="bar">`, so keep that line intact.
-- Commit `dart_roadmap/` and the regenerated `docs/` together.
+- Commit `dart_roadmap/` and the regenerated `docs/` together. CI fails if `docs/` is stale.
+- `sw.js`, `manifest.webmanifest`, `icon.svg` in `dart_roadmap/` make the site work offline (service worker registers only on `*.github.io`).
+
+## Tests
+
+```sh
+sh tests/run.sh              # build, then every page/widget/link/test in headless Chrome, then error-message check
+node tests/verify_errors.mjs # only: run each Error অভিধান example with real Dart and compare messages
+```
+
+- `tests/smoke.js` runs inside the page (injected by `run.sh`) and prints `FAIL ...` lines plus `DONE n checks`. When adding a widget with missions, add a scripted run there.
+- `tests/errors/*.dart` are the programs behind each `TOPICS.errors.dict` entry; the name→file map is in `verify_errors.mjs`. Every entry's `msg` must appear verbatim in real Dart output, so change the example file and the `msg` together.
+- `.github/workflows/test.yml` runs both on push.
 
 To preview locally, serve `docs/` (for example `python3 -m http.server -d docs`) and open the page. The site loads Google Fonts and highlight.js (with Dart grammar) from cdnjs.
 
 ## Architecture
 
-Script load order in `index.html`: highlight.js, then an inline script declaring the global registries `TOPICS = {}`, `TRACES = {}`, `CARDS = []`, then `content1.js` … `content7.js` (data), then `app.js` (renderer). Content files only populate the globals; `app.js` reads them at load.
+Script load order in `index.html`: highlight.js, then an inline script declaring the global registries `TOPICS = {}`, `TRACES = {}`, `CARDS = []`, then `content1.js` … `content11.js` (data), then `app.js` (renderer). Content files only populate the globals; `app.js` reads them at load.
 
 - **`app.js`**
-  - `WEEKS`: week-to-topic-id mapping. This array alone defines sidebar order and prev/next order (`ORDER`). A topic in `TOPICS` but not in `WEEKS` does not appear.
+  - `WEEKS`: week-to-topic-id mapping. This array alone defines sidebar order and prev/next order (`ORDER`). A topic in `TOPICS` but not in `WEEKS` does not appear. Entries with a `label` are non-week groups: `'শুরুর আগে'` (`n: 's'`, `pos: 'start'`, shown before week 1) and `'Extra'` (`n: 'x'`). `MAIN` is only the numbered weeks (used for the home CTA and daily challenge); prev/next stays within a group. Flashcard `CARDS.w` matches `WEEKS.n` (`'s'`, `'x'`, or a number).
   - `CLUES`: regexes over problem text that add hints to the "কিভাবে ভাববো?" panel.
   - `block()`: renders `learn` blocks. A block is a string (paragraph) or an object keyed by type: `h`, `code`/`out`, `list`, `tip`, `warn`, `table`, `boxes`, `array`, `chain`, `map`, `anat`, `objs`, `tree`, `widget`, `trace`.
-  - `W`: interactive widgets (`opLab`, `patternLab`, `funcMachine`, `listLab`, `pipeLab`, `sortLab`, `stepSort`, `isolateDemo`, `termLab` = fake in-browser Linux shell with missions), mounted from `{ widget: 'name' }` blocks.
+  - `W`: interactive widgets mounted from `{ widget: 'name' }` blocks. Besides the small labs: `termLab`/`psLab` (fake Linux/PowerShell shell with missions), `gitLab` (fake git with a 3-box working/staging/commits view), `errLab` (searches `TOPICS.errors.dict`), `glossLab` (`TOPICS.glossary.words`), `bugHunt` (`TOPICS.debugging.bugs`, added in `content11.js`), `keyboard`.
+  - Code blocks with `lang` dart that contain `main(` get a **▶ চালাও** button: it embeds `https://dartpad.dev/?embed=true&run=true` and posts `{type:'sourceCode', sourceCode}` after DartPad sends `{type:'ready', sender:<iframe name>}`.
+  - Extra routes: `#test-<week n>` (random quiz questions from that week's topics; best score in `S.tests`), home has a daily challenge (`dailyPick`) and progress export/import (merge, never overwrite).
   - `mountTrace()`: step-through dry-run viewer for `TRACES` entries.
   - Hash routing (`#home`, `#cards`, `#<topic-id>`); renders the whole page on `hashchange`.
-  - Progress is saved in `localStorage` under key `dart-khata-v1` (`S.done`, `S.known`). The last page is saved under `dart-khata-v1-last`.
+  - Progress is saved in `localStorage` under key `dart-khata-v1`: `S.done` (problem keys), `S.cards` (flashcard Leitner box `b` and due day `d`; legacy `S.known` is read as box 2), `S.tests`. Also `dart-khata-v1-last` (last page) and `dart-khata-v1-theme`.
 - **Topic shape** (`TOPICS['id'] = {...}`): `short`, `title`, `days`, `goal`, optional `lang` (default code language for the topic, e.g. `'bash'`), `learn: [blocks]`, `how: [strings]`, optional `traces: ['traceId']`, optional `quiz: [{ q, code?, opts, a (correct index), why }]`, `probs: [{ l, q, hint?, code?, out?, ans?, note?, sol? }]`. `l` is the level: `e`/`m`/`h`/`p` (easy/medium/hard/project).
 - **Trace shape** (`TRACES.id = { title, lang?, box? (label of the state box), code: [lines], steps: [{ l: lineIndex, v?: {vars}, p?: printed, n: note }] }`).
 - **Cards**: each content file ends with `CARDS.push({ w: week, f: 'description', b: 'syntax' }, ...)`.

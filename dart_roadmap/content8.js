@@ -17,7 +17,7 @@ TOPICS['errors'] = {
     { list: ['{{bin/main.dart}}: কোন ফাইলে।', '{{4:20}}: লাইন 4, কলাম 20।', '{{Error: ...}}: কী সমস্যা। নিচের অভিধানে এই লেখাটা খোঁজো।', '{{^}}: ঠিক কোন জায়গায়।'] },
     { h: 'চলার সময়ের Error পড়া: stack trace' },
     { code: `Unhandled exception:
-RangeError (index): Index out of range: index should be less than 3: 5
+RangeError (length): Invalid value: Not in inclusive range 0..2: 5
 #0      List.[] (dart:core-patch/growable_array.dart)
 #1      showItem (file:///home/rafi/app/bin/main.dart:7:15)
 #2      main (file:///home/rafi/app/bin/main.dart:2:3)`, lang: 'plaintext' },
@@ -40,7 +40,7 @@ RangeError (index): Index out of range: index should be less than 3: 5
 Null check operator used on a null value
 #0      getName (file:///home/rafi/app/bin/user.dart:12:20)
 #1      main (file:///home/rafi/app/bin/main.dart:5:9)`, lang: 'plaintext', opts: ['main.dart লাইন 5', 'user.dart লাইন 12', 'dart:core এর ভেতরে', 'প্রথম লাইনে'], a: 1, why: '{{#0}} হলো ঠিক যেখানে সমস্যা হয়েছে, আর সেটা তোমার নিজের ফাইল: user.dart এর লাইন 12, কলাম 20। main.dart লাইন 5 শুধু ওই function কে ডেকেছিল।' },
-    { q: '{{RangeError (index): Index out of range: index should be less than 3: 3}} মানে কী?', opts: ['list এ 3টা জিনিস আছে, তুমি index 3 চেয়েছ', 'list এ 4টা জিনিস আছে', 'index 3 টা বেশি', 'list খালি'], a: 0, why: '3টা জিনিস মানে index 0, 1, 2। "less than 3" মানে 3 এর ছোট হতে হবে। শেষের {{: 3}} হলো তুমি যেটা চেয়েছ।' },
+    { q: '{{RangeError (length): Invalid value: Not in inclusive range 0..2: 3}} মানে কী?', opts: ['list এ 3টা জিনিস আছে, তুমি index 3 চেয়েছ', 'list এ 4টা জিনিস আছে', 'index 3 টা বেশি', 'list খালি'], a: 0, why: '{{0..2}} মানে চলবে শুধু 0, 1, 2, অর্থাৎ list এ ৩টা জিনিস। শেষের {{: 3}} হলো তুমি যেটা চেয়েছ।' },
     { q: 'কোনটা {{try/catch}} দিয়ে ধরার মতো, কোড ঠিক করার বদলে?', opts: ['ইউজারের লেখা int.parse করতে FormatException', 'list[10] এ RangeError (list এ 3টা জিনিস)', 'null এ ! দিয়ে TypeError', 'Stack Overflow'], a: 0, why: 'ইউজার কী লিখবে তুমি আগে থেকে জানো না, তাই এটা আসতেই পারে: ধরো আর সুন্দর করে বলো (অথবা {{int.tryParse}})। বাকিগুলো তোমার কোডের ভুল, কোড ঠিক করো।' },
     { q: "{{Error: The getter 'lenght' isn't defined for the type 'String'.}} কখন দেখাবে?", opts: ['চালানোর আগেই', 'চলার মাঝখানে', 'শুধু ইন্টারনেট না থাকলে', 'কখনো না'], a: 0, why: 'বানান ভুল ({{lenght}} এর জায়গায় {{length}})। Dart কোড পড়েই বোঝে String এ এই নামে কিছু নেই, তাই চালানোর আগেই থামায়।' },
   ],
@@ -48,7 +48,7 @@ Null check operator used on a null value
     { l: 'e', q: 'এই কোড চালালে কোন Error আসবে, আর কেন? ঠিক করো।', code: `void main() {
   var fruits = ['আম', 'জাম', 'কাঁঠাল'];
   print(fruits[3]);
-}`, ans: '{{RangeError (index): Index out of range: index should be less than 3: 3}}।\n৩টা জিনিসের index 0, 1, 2। শেষেরটা চাইলে {{fruits[2]}} বা {{fruits.last}} বা {{fruits[fruits.length - 1]}}।' },
+}`, ans: '{{RangeError (length): Invalid value: Not in inclusive range 0..2: 3}}।\n৩টা জিনিসের index 0, 1, 2 ({{0..2}})। শেষেরটা চাইলে {{fruits[2]}} বা {{fruits.last}} বা {{fruits[fruits.length - 1]}}।' },
     { l: 'e', q: 'ইউজার বয়স লিখলো "চৌদ্দ"। {{int.parse(input)}} এ কী হবে? crash না করে কিভাবে সামলাবে?', sol: `void main() {
   String input = 'চৌদ্দ';
   int? age = int.tryParse(input);
@@ -131,8 +131,8 @@ void main() {
       m: 'লেখাকে (String) সংখ্যায় বদলাতে চেয়েছ, কিন্তু লেখাটা সংখ্যা না। "radix-10" মানে দশভিত্তিক সংখ্যা, "character 1" মানে প্রথম অক্ষরেই গোলমাল।',
       bad: `int n = int.parse('12a');`, good: `int? n = int.tryParse('12a'); // null, crash না\nif (n == null) print('সংখ্যা দাও');`,
       fix: 'ইউজারের লেখা হলে {{int.tryParse}} / {{double.tryParse}} ব্যবহার করো, null হলে বুঝিয়ে বলো। লেখায় স্পেস থাকলে আগে {{.trim()}}। দশমিক থাকলে {{int.parse}} না, {{double.parse}}। JSON ভুল হলেও এই নামে Error আসে ({{Unexpected character}})।' },
-    { n: 'RangeError (index)', k: 'run', msg: 'RangeError (index): Index out of range: index should be less than 3: 5', tags: 'list index out of range no indices are valid IndexError',
-      m: 'list এ যে index নেই সেটা চেয়েছ। "less than 3" মানে list এ ৩টা জিনিস, তাই index 0 থেকে 2 পর্যন্ত চলে। শেষের সংখ্যা (5) হলো তুমি যেটা চেয়েছ। খালি list হলে লেখা থাকে "no indices are valid"।',
+    { n: 'RangeError (list এর index)', k: 'run', msg: 'RangeError (length): Invalid value: Not in inclusive range 0..2: 5', tags: 'list index out of range valid value range is empty IndexError',
+      m: 'list এ যে index নেই সেটা চেয়েছ। {{0..2}} মানে চলবে শুধু 0 থেকে 2, অর্থাৎ list এ ৩টা জিনিস। শেষের সংখ্যা (5) হলো তুমি যেটা চেয়েছ। খালি list হলে লেখা থাকে {{Valid value range is empty: 0}}।',
       bad: `var list = [10, 20, 30];\nprint(list[3]);`, good: `var list = [10, 20, 30];\nprint(list[list.length - 1]); // শেষেরটা: 30`,
       fix: 'শেষ index হলো {{length - 1}}, {{length}} না। loop এ {{i <= list.length}} থাকলে {{i < list.length}} করো (এক বেশি ভুল)। খালি list এর {{[0]}} চাওয়ার আগে {{isNotEmpty}} চেক।' },
     { n: 'RangeError (substring)', k: 'run', msg: 'RangeError (end): Invalid value: Not in inclusive range 1..3: 5', tags: 'substring string range start end invalid value',
@@ -160,14 +160,14 @@ void main() {
       bad: `List<int> nums = [];\nprint(nums.first);`, good: `List<int> nums = [];\nprint(nums.isEmpty ? 'খালি' : nums.first);`,
       fix: 'আগে {{isEmpty}} চেক করো। {{firstWhere}} এ {{orElse: () => ...}} দাও। যোগফলের জন্য {{reduce}} এর বদলে {{fold(0, ...)}}, ওটা খালি list এও চলে।' },
     { n: 'IntegerDivisionByZeroException', k: 'run', msg: 'IntegerDivisionByZeroException', tags: 'divide zero ~/ % unsupported operation infinity',
-      m: '{{~/}} (ভাগফল) বা {{%}} (ভাগশেষ) এ শূন্য দিয়ে ভাগ করেছ। নতুন Dart এ মেসেজটা {{Unsupported operation: Result of truncating division is Infinity}} এর মতোও দেখাতে পারে। খেয়াল করো: {{/}} দিয়ে শূন্যে ভাগ করলে Error না, ফল আসে {{Infinity}}।',
+      m: '{{~/}} (ভাগফল) বা {{%}} (ভাগশেষ) এ শূন্য দিয়ে ভাগ করেছ। খেয়াল করো: {{/}} দিয়ে শূন্যে ভাগ করলে Error না, ফল আসে {{Infinity}}।',
       bad: `int total = 10, people = 0;\nprint(total ~/ people);`, good: `int total = 10, people = 0;\nprint(people == 0 ? 'কেউ নেই' : total ~/ people);`,
       fix: 'ভাগের আগে ভাজক 0 কিনা চেক করো। গড় বের করার সময় খালি list এ এটা খুব হয় ({{sum ~/ list.length}})।' },
     { n: 'NoSuchMethodError', k: 'run', msg: "NoSuchMethodError: Class 'int' has no instance getter 'length'.", tags: 'dynamic getter method called on null receiver tried calling',
       m: 'এমন method বা getter ডেকেছ যেটা ওই জিনিসের নেই। এটা চলার সময় আসে শুধু {{dynamic}} বা {{var}} দিয়ে type হারালে। "was called on null" লেখা থাকলে জিনিসটা আসলে null ছিল।',
       bad: `dynamic x = 5;\nprint(x.length);`, good: `dynamic x = 5;\nprint(x.toString().length); // 1`,
       fix: '{{dynamic}} কম ব্যবহার করো, আসল type দাও ({{int}}, {{String}}), তাহলে এই ভুল চালানোর আগেই ধরা পড়বে। {{print(x.runtimeType)}} দিয়ে দেখো আসলে কী আছে।' },
-    { n: 'Concurrent modification', k: 'run', msg: "Concurrent modification during iteration: Instance(length:5) of '_GrowableList'.", tags: 'ConcurrentModificationError for in loop remove add while iterating',
+    { n: 'Concurrent modification', k: 'run', msg: "Concurrent modification during iteration: Instance(length:3) of '_GrowableList'.", tags: 'ConcurrentModificationError for in loop remove add while iterating',
       m: 'একটা list এর উপর {{for-in}} দিয়ে ঘুরছ, আর সেই loop এর ভেতরেই list এ যোগ বা মোছা করছ। Dart গুলিয়ে ফেলে কোনটার পর কোনটা, তাই থামিয়ে দেয়।',
       bad: `var nums = [1, 2, 3, 4];\nfor (var n in nums) {\n  if (n.isEven) nums.remove(n);\n}`, good: `var nums = [1, 2, 3, 4];\nnums.removeWhere((n) => n.isEven);`,
       fix: 'মুছতে {{removeWhere}}। যোগ করতে নতুন list বানিয়ে loop শেষে যোগ করো। অথবা কপির উপর ঘোরো: {{for (var n in [...nums])}}।' },
@@ -187,8 +187,8 @@ void main() {
       m: '{{assert(শর্ত)}} দিয়ে বলেছিলে "এই শর্ত সবসময় সত্য হবে"। কিন্তু হয়নি। মানে কোডের কোথাও logic ভুল। (assert শুধু {{--enable-asserts}} দিয়ে চালালে বা Flutter debug এ চলে।)',
       bad: `int total = -5;\nassert(total >= 0);`, good: `// assert ঠিক আছে, ভুল হলো total কেন -5 হলো\n// সেটা খুঁজে ঠিক করো`,
       fix: 'assert বদলিও না। লাইন নম্বর দেখো, তারপর পেছনে গিয়ে খোঁজো মানটা কেন এমন হলো। assert হলো তোমার নিজের পাহারাদার।' },
-    { n: 'FileSystemException', k: 'run', msg: "FileSystemException: Cannot open file, path = 'data.txt' (OS Error: No such file or directory, errno = 2)", tags: 'file io dart:io open read write path OS error',
-      m: 'ফাইল খুলতে পারেনি। "No such file or directory" মানে এই নামে এই জায়গায় ফাইল নেই। "Permission denied" মানে খোলার অনুমতি নেই।',
+    { n: 'PathNotFoundException (FileSystemException)', k: 'run', msg: "PathNotFoundException: Cannot open file, path = 'data.txt' (OS Error: No such file or directory, errno = 2)", tags: 'file io dart:io open read write path OS error FileSystemException',
+      m: 'ফাইল খুলতে পারেনি। এটা {{FileSystemException}} পরিবারের Error, ফাইল না পেলে নাম হয় {{PathNotFoundException}}। "No such file or directory" মানে এই নামে এই জায়গায় ফাইল নেই। "Permission denied" মানে খোলার অনুমতি নেই।',
       bad: `import 'dart:io';\nvoid main() {\n  print(File('data.txt').readAsStringSync());\n}`, good: `import 'dart:io';\nvoid main() {\n  var f = File('data.txt');\n  print(f.existsSync() ? f.readAsStringSync() : 'ফাইল নেই');\n}`,
       fix: 'relative path হিসাব হয় **terminal যেখানে আছে** সেখান থেকে, ফাইল যেখানে সেখান থেকে না। terminal এ {{pwd}} (Windows এ {{Get-Location}}) দিয়ে দেখো কোথায় আছো। ফাইলের নাম, বানান, এক্সটেনশন মেলাও।' },
     { n: 'TimeoutException', k: 'run', msg: 'TimeoutException after 0:00:05.000000: Future not completed', tags: 'timeout future async await network',
@@ -221,7 +221,7 @@ void main() {
       m: 'variable এর type যা, তার মধ্যে অন্য type এর মান রাখতে চেয়েছ। বাক্সের গায়ে লেখা "int", তুমি ঢোকাচ্ছ লেখা।',
       bad: `int age = '14';`, good: `int age = int.parse('14');\n// অথবা সরাসরি: int age = 14;`,
       fix: 'মানটাকে ঠিক type এ বদলাও ({{int.parse}}, {{toString()}}, {{toDouble()}}), অথবা variable এর type বদলাও। int এ দশমিক রাখা যায় না, তাই {{int x = 2.5}} ও এই Error দেয়।' },
-    { n: 'nullable can\'t be assigned', k: 'compile', msg: "Error: The argument type 'String?' can't be assigned to the parameter type 'String' because 'String?' is nullable and 'String' isn't.", tags: 'nullable null safety argument parameter ? type',
+    { n: "argument type 'String?' can't be assigned", k: 'compile', msg: "Error: The argument type 'String?' can't be assigned to the parameter type 'String'.", tags: 'nullable null safety argument parameter ? type',
       m: 'যেখানে null চলবে না ({{String}}), সেখানে এমন জিনিস দিয়েছ যেটা null হতে পারে ({{String?}})। Dart আগেই সাবধান করছে।',
       bad: `String? input = stdin.readLineSync();\ngreet(input);  // greet(String name)`, good: `String input = stdin.readLineSync() ?? '';\ngreet(input);`,
       fix: '{{??}} দিয়ে বিকল্প মান দাও, অথবা আগে {{if (input != null)}} চেক করো (তার ভেতরে Dart বোঝে এটা আর null না)। নিশ্চিত হলে {{!}}, কিন্তু সাবধানে।' },
@@ -245,7 +245,7 @@ void main() {
       m: 'function বলছে সে {{int}} ফেরত দেবে, কিন্তু কোনো একটা পথে ({{if}} এর বাইরে, loop এর পরে) {{return}} নেই।',
       bad: `int sign(int n) {\n  if (n > 0) return 1;\n  if (n < 0) return -1;\n}`, good: `int sign(int n) {\n  if (n > 0) return 1;\n  if (n < 0) return -1;\n  return 0;\n}`,
       fix: 'function এর একদম শেষে একটা {{return}} দাও, যাতে কোনো শর্ত না মিললেও কিছু ফেরত যায়।' },
-    { n: "Can't assign to the final variable", k: 'compile', msg: "Error: Can't assign to the final variable 'pi'.", tags: 'final const assign reassign change',
+    { n: "Can't assign to the final variable", k: 'compile', msg: "Error: Can't assign to the final variable 'score'.", tags: 'final const assign reassign change',
       m: '{{final}} বা {{const}} variable এর মান একবার দেওয়ার পর আর বদলানো যায় না। তুমি বদলাতে চেয়েছ।',
       bad: `final score = 10;\nscore = 20;`, good: `var score = 10;\nscore = 20;`,
       fix: 'মান বদলাতে হলে {{final}} এর জায়গায় {{var}} বা type ({{int}}) দাও। না বদলানোর কথা থাকলে ভুলটা হলো দ্বিতীয়বার মান দেওয়ার লাইন।' },
@@ -258,7 +258,7 @@ void main() {
 
 CARDS.push(
   { w: 'x', f: 'stack trace এ প্রথমে কোন লাইন দেখবো?', b: 'Error এর নাম (২য় লাইন), তারপর\n#0, #1... এর মধ্যে প্রথম যেটায়\nতোমার নিজের ফাইলের নাম আছে' },
-  { w: 'x', f: 'RangeError (index) এর সবচেয়ে কমন কারণ', b: 'i <= list.length\n(হবে i < list.length,\nশেষ index = length - 1)' },
+  { w: 'x', f: 'list এ RangeError এর সবচেয়ে কমন কারণ', b: 'i <= list.length\n(হবে i < list.length,\nশেষ index = length - 1)' },
   { w: 'x', f: 'Null check operator used on a null value', b: 'x! দিয়েছিলে কিন্তু x ছিল null\nসমাধান: x ?? বিকল্প, x?.কিছু, if (x != null)' },
   { w: 'x', f: 'Bad state: No element', b: 'খালি list এ first / last / reduce\nআগে isEmpty চেক, বা fold' },
   { w: 'x', f: 'crash ছাড়া String থেকে int', b: "int? n = int.tryParse('12a'); // null" },

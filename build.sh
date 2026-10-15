@@ -3,6 +3,7 @@
 set -e
 rm -rf docs && mkdir docs
 cp dart_roadmap/*.js docs/
+cp dart_roadmap/manifest.webmanifest dart_roadmap/icon.svg docs/   # অফলাইন (sw.js উপরের *.js এর সাথেই যায়)
 # প্রতিটা script এ ?v=<content hash>, যাতে ব্রাউজার পুরানো cache এর ফাইল না মেশায়
 ver() { md5sum "dart_roadmap/$1" | cut -c1-8; }
 html=$(cat dart_roadmap/index.html)

@@ -1,5 +1,7 @@
 // ---------- data: সপ্তাহ ভাগ ----------
 const WEEKS = [
+  // কোড শুরুর আগের প্রস্তুতি: সূচিতে সবার উপরে। pos: 'start' মানে রোডম্যাপেও সপ্তাহ ১ এর আগে
+  { n: 's', label: 'শুরুর আগে', pos: 'start', title: 'কোড লেখার আগের প্রস্তুতি: কিবোর্ড, VS Code, ইংরেজি শব্দ, সাহায্য চাওয়া', ids: ['vscode', 'glossary', 'help'] },
   { n: 1, title: 'ভাবতে শেখা, Output, Variable, String', ids: ['think', 'setup', 'variables', 'strings-basic'] },
   { n: 2, title: 'অপারেটর, Input আর Null', ids: ['operators', 'conversion', 'null-safety'] },
   { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'switch-ternary'] },
@@ -13,7 +15,7 @@ const WEEKS = [
   { n: 11, title: 'JSON, Async, Stream, Isolate', ids: ['json', 'async', 'streams', 'isolates'] },
   { n: 12, title: 'Mini Project', ids: ['projects'] },
   // সপ্তাহের বাইরে: যার যখন দরকার পড়বে। n দিয়ে flashcard এর CARDS.w মেলে
-  { n: 'x', label: 'Extra', title: 'Terminal, Git, Compile আর Error অভিধান: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'git', 'dart-compile', 'errors'] },
+  { n: 'x', label: 'Extra', title: 'Terminal, Git, Debugger, Package, Flutter আর আরো: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'git', 'debugger', 'clean-code', 'packages', 'inside', 'dart-compile', 'errors', 'flutter-intro', 'gallery'] },
 ];
 
 // সমস্যার লেখায় এই শব্দগুলো থাকলে "কিভাবে ভাববো?" প্যানেলে সূত্র দেখায়
@@ -40,6 +42,8 @@ const clueFor = q => CLUES.filter(([re]) => re.test(q)).slice(0, 4).map(c => c[1
 // data ফাইল লোড না হলে (যেমন পুরানো cache) সেই টপিক বাদ, পুরো পাতা যেন ভেঙে না যায়
 WEEKS.forEach(w => { w.ids = w.ids.filter(id => TOPICS[id]); });
 const ORDER = WEEKS.flatMap(w => w.ids);
+const MAIN = WEEKS.filter(w => !w.label).flatMap(w => w.ids); // শুধু সপ্তাহের টপিক, ক্রমে
+const today = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 6e4) / 864e5); // স্থানীয় দিন নম্বর
 const LVL = { e: 'সহজ', m: 'মাঝারি', h: 'কঠিন', p: 'প্রজেক্ট' };
 
 // ---------- helpers ----------
@@ -58,7 +62,7 @@ const wkName = w => w.label || `সপ্তাহ ${bn(w.n)}`;
 
 // ---------- progress (শুধু এই ব্রাউজারে) ----------
 const KEY = 'dart-khata-v1';
-let S = { done: {}, known: {} };
+let S = { done: {}, known: {}, cards: {}, tests: {} }; // cards: flashcard এর বাক্স আর পরের দিন, tests: সাপ্তাহিক পরীক্ষার সেরা স্কোর
 try { S = Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
@@ -78,8 +82,10 @@ const total = () => ORDER.reduce((a, id) => a + (TOPICS[id]?.probs.length || 0),
 const totalDone = () => ORDER.reduce((a, id) => a + topicDone(id), 0);
 
 // ---------- blocks ----------
+// পুরো প্রোগ্রাম (main আছে) হলে DartPad এ চালানোর বোতাম
+const runnable = (code, lang) => lang === 'dart' && /\bmain\s*\(/.test(code);
 function codeBlock(code, out, lang = 'dart') {
-  return `<div class="code"><div class="code-bar"><span>${LANG_LABEL[lang] || lang}</span><button data-act="copy">কপি</button></div>
+  return `<div class="code"><div class="code-bar"><span>${LANG_LABEL[lang] || lang}</span><span class="cb-act">${runnable(code, lang) ? '<button data-act="run">▶ চালাও</button>' : ''}<button data-act="copy">কপি</button></span></div>
     <pre><code>${hl(code, lang)}</code></pre>${out ? `<div class="out">${esc(out)}</div>` : ''}<textarea hidden>${esc(code)}</textarea></div>`;
 }
 function block(b, lang) {
@@ -119,7 +125,7 @@ function renderSide(cur) {
 
 // ---------- pages ----------
 function renderHome() {
-  const next = ORDER.find(id => topicDone(id) < TOPICS[id].probs.length) || ORDER[0];
+  const next = MAIN.find(id => topicDone(id) < TOPICS[id].probs.length) || MAIN[0];
   return `<div class="page">
   <section class="hero">
     <p class="eyebrow">১৩ সপ্তাহের (প্রায় ৩ মাস) রোডম্যাপ · Dart</p>
@@ -127,7 +133,9 @@ function renderHome() {
     <p class="lead">প্রতিটা টপিকে আছে সহজ ভাষায় ব্যাখ্যা, ধাপে ধাপে কোড চলতে দেখার যন্ত্র, ছোট কুইজ আর অনেকগুলো সমস্যা। সহজ থেকে শুরু, আস্তে আস্তে কঠিন। প্রতিটা সমস্যার হিন্ট আর সমাধান আছে, কিন্তু আগে নিজে চেষ্টা।</p>
     <div class="stats"><div>${bn(ORDER.length)}<small>টপিক</small></div><div>${bn(total())}<small>প্র্যাকটিস সমস্যা</small></div><div>${bn(totalDone())}<small>তুমি শেষ করেছ</small></div></div>
     <a class="cta" href="#${next}">${totalDone() ? 'যেখানে থেমেছিলে সেখান থেকে' : 'প্রথম দিন শুরু করো'} → ${esc(TOPICS[next].title)}</a>
+    ${TOPICS.vscode && !totalDone() ? `<p class="goal">কম্পিউটারে কখনো কোড লেখোনি? আগে <a href="#vscode">শুরুর আগে</a> অংশটা দেখে নাও: কিবোর্ডের চিহ্ন, VS Code, আর প্রোগ্রামিং এর ইংরেজি শব্দ।</p>` : ''}
   </section>
+  ${dailyHTML()}
 
   <section class="callout">
     <h2>সবার আগে: কোড না, ভাবনা</h2>
@@ -182,32 +190,37 @@ function renderHome() {
 
   <section>
     <h2>রোডম্যাপ</h2>
-    <div class="weeks">${WEEKS.filter(w => !w.label).map(wkRow).join('')}
+    <div class="weeks">${WEEKS.filter(w => w.pos === 'start').map(wkRow).join('')}${WEEKS.filter(w => !w.label).map(wkRow).join('')}
       <div class="wkrow"><h3><span>সপ্তাহ ১৩</span>রিভিশন</h3><p>Logic Gym আর সব কঠিন সমস্যা আবার করো, সমাধান না দেখে। তারপর Flutter শুরু করা যায়।</p></div>
-      ${WEEKS.filter(w => w.label).map(wkRow).join('')}
+      ${WEEKS.filter(w => w.label && w.pos !== 'start').map(wkRow).join('')}
     </div>
   </section>
-  <p class="goal">কোড চালাতে: <a href="https://dartpad.dev" target="_blank" rel="noopener">dartpad.dev</a> (ব্রাউজারেই চলে, কিছু install লাগে না)। অগ্রগতি শুধু এই ব্রাউজারে সেভ থাকে।</p>
+  <section>
+    <h2>তোমার অগ্রগতি <span class="step">ব্যাকআপ</span></h2>
+    <p>অগ্রগতি (কোন সমস্যা শেষ, কোন কার্ড মনে আছে, পরীক্ষার স্কোর) শুধু <b>এই ব্রাউজারে</b> সেভ থাকে। ব্রাউজারের ডেটা মুছে গেলে বা অন্য কম্পিউটারে গেলে হারাবে। মাঝে মাঝে ফাইলে নামিয়ে রাখো, পরে সেই ফাইল দিয়ে ফেরত আনতে পারবে।</p>
+    <div class="w-row"><button class="btn primary" data-act="export">অগ্রগতি ফাইলে নামাও</button><label class="btn">ফাইল থেকে ফেরত আনো<input type="file" accept=".json,application/json" data-act="import" hidden></label><span class="goal" id="bk-msg"></span></div>
+  </section>
+  <p class="goal">কোড চালাতে: কোডের পাশের <b>▶ চালাও</b> বোতাম, অথবা <a href="https://dartpad.dev" target="_blank" rel="noopener">dartpad.dev</a>। পাতাটা একবার খুললে পরে ইন্টারনেট ছাড়াও পড়া যায় (কোড চালাতে ইন্টারনেট লাগে)।</p>
   </div>`;
 }
 
 function wkRow(w) {
   const d = w.ids.reduce((a, id) => a + topicDone(id), 0), n = w.ids.reduce((a, id) => a + TOPICS[id].probs.length, 0);
   return `<div class="wkrow ${d === n ? 'full' : d ? 'started' : ''}"><h3><span>${esc(wkName(w))}</span>${esc(w.title)}</h3>
-    <div class="tps">${w.ids.map(id => `<a href="#${id}" class="${topicDone(id) === TOPICS[id].probs.length ? 'full' : ''}">${esc(TOPICS[id].short || TOPICS[id].title)} · ${bn(topicDone(id))}/${bn(TOPICS[id].probs.length)}</a>`).join('')}</div></div>`;
+    <div class="tps">${w.ids.map(id => `<a href="#${id}" class="${topicDone(id) === TOPICS[id].probs.length ? 'full' : ''}">${esc(TOPICS[id].short || TOPICS[id].title)} · ${bn(topicDone(id))}/${bn(TOPICS[id].probs.length)}</a>`).join('')}${testPool(w).length ? `<a class="tlink" href="#test-${w.n}">সপ্তাহের পরীক্ষা${S.tests[w.n] ? ` · সেরা ${bn(S.tests[w.n][0])}/${bn(S.tests[w.n][1])}` : ''} →</a>` : ''}</div></div>`;
 }
 
 function renderTopic(id) {
   const t = TOPICS[id], w = weekOf(id);
   // আগের/পরের টপিক: সপ্তাহের টপিক আর Extra আলাদা, একটা থেকে আরেকটায় লাফ দেয় না
-  const group = WEEKS.filter(x => !x.label === !w.label).flatMap(x => x.ids), k = group.indexOf(id);
+  const group = WEEKS.filter(x => (x.label || '') === (w.label || '')).flatMap(x => x.ids), k = group.indexOf(id);
   const prev = group[k - 1], next = group[k + 1];
   return `<article class="page">
   <header class="t-head">
     <p class="eyebrow">${esc(wkName(w))} · ${esc(t.days)}</p>
     <h1>${esc(t.title)}</h1>
     <p class="goal"><b>আজকের লক্ষ্য:</b> ${fmt(t.goal)}</p>
-    <div class="jump"><button data-go="s-learn">শেখো</button><button data-go="s-how">কিভাবে কাজ করে</button>${t.quiz?.length ? '<button data-go="s-quiz">কুইজ</button>' : ''}<button data-go="s-prob">সমস্যা (${bn(t.probs.length)})</button></div>
+    <div class="jump"><button data-go="s-learn">শেখো</button><button data-go="s-how">কিভাবে কাজ করে</button>${t.quiz?.length ? '<button data-go="s-quiz">কুইজ</button>' : ''}<button data-go="s-prob">সমস্যা (${bn(t.probs.length)})</button><button data-act="print">প্রিন্ট</button><button data-act="print-sol">প্রিন্ট (সমাধানসহ)</button></div>
   </header>
   <section id="s-learn"><h2><span class="step">ধাপ ১</span>শেখো</h2>${t.learn.map(b => block(b, t.lang)).join('')}</section>
   <section id="s-how"><h2><span class="step">ধাপ ২</span>কিভাবে কাজ করে</h2>
@@ -223,6 +236,7 @@ function renderTopic(id) {
     <div class="pfilter"><button class="chip on" data-f="all">সব</button><button class="chip" data-f="e">সহজ</button><button class="chip" data-f="m">মাঝারি</button><button class="chip" data-f="h">কঠিন</button><button class="chip" data-f="left">বাকি আছে</button><span class="sum" id="psum"></span></div>
     <div class="probs">${t.probs.map((p, i) => probCard(id, p, i)).join('')}</div>
   </section>
+  ${!w.label && w.ids[w.ids.length - 1] === id && testPool(w).length ? `<section class="callout"><h2>${esc(wkName(w))} শেষ?</h2><p>এই সপ্তাহের সব টপিক থেকে ছোট একটা পরীক্ষা দাও। ৭০% বা বেশি পেলে পরের সপ্তাহে যাও, কম পেলে যেগুলো ভুল হলো সেগুলো আবার দেখো।</p><p><a class="cta" href="#test-${w.n}">সপ্তাহের পরীক্ষা দাও →</a></p></section>` : ''}
   <nav class="pager">${prev ? `<a href="#${prev}"><small>← আগের টপিক</small>${esc(TOPICS[prev].title)}</a>` : '<span></span>'}${next ? `<a href="#${next}"><small>পরের টপিক →</small>${esc(TOPICS[next].title)}</a>` : ''}</nav>
   </article>`;
 }
@@ -234,7 +248,7 @@ function probCard(id, p, i) {
     <div class="ph"><span class="num">${bn(i + 1)}</span><div class="qt">${fmt(p.q)}</div><span class="lvl ${p.l}">${LVL[p.l]}</span></div>
     ${p.code ? codeBlock(p.code, '', lang) : ''}
     ${p.out ? `<p class="goal">প্রত্যাশিত output: <code>${esc(p.out)}</code></p>` : ''}
-    <div class="pact"><button class="btn think" data-act="think">কিভাবে ভাববো?</button>${p.hint ? '<button class="btn" data-act="hint">হিন্ট</button>' : ''}<button class="btn" data-act="sol">সমাধান</button>
+    <div class="pact"><button class="btn think" data-act="think">কিভাবে ভাববো?</button>${p.hint ? '<button class="btn" data-act="hint">হিন্ট</button>' : ''}${p.sol || p.ans || p.note ? '<button class="btn" data-act="sol">সমাধান</button>' : ''}
       <label><input type="checkbox" id="cb-${k}" data-act="done" ${done ? 'checked' : ''}> নিজে পেরেছি</label></div>
     <div class="ladder" hidden>
       <b>কোড লেখার আগে খাতায় এই সিঁড়ি বেয়ে ওঠো:</b>
@@ -254,37 +268,104 @@ function probCard(id, p, i) {
   </div>`;
 }
 
+// বাক্স পদ্ধতি: "মনে আছে" চাপলে কার্ড পরের বাক্সে যায় আর আরো দেরিতে আসে, "মনে নেই" চাপলে বাক্স ১ এ ফেরে
+const GAP = [0, 1, 3, 7, 14, 30]; // বাক্স অনুযায়ী কত দিন পরে আবার
+const cardState = k => S.cards[k] || (S.known[k] ? { b: 2, d: 0 } : { b: 0, d: 0 });
+const isDue = k => cardState(k).d <= today();
 function renderCards() {
+  const due = CARDS.filter((c, k) => isDue(k)).length;
   return `<div class="page"><header class="t-head"><p class="eyebrow">প্রতিদিন ৫ মিনিট</p><h1>Syntax ফ্ল্যাশকার্ড</h1>
-    <p class="goal">প্রশ্ন দেখে মনে মনে বা খাতায় কোডটা লেখো, তারপর কার্ডে ক্লিক করে মিলিয়ে নাও। মনে থাকলে "মনে আছে" চাপো, সেটা পরে কম আসবে।</p></header>
+    <p class="goal">প্রশ্ন দেখে মনে মনে বা খাতায় কোডটা লেখো, তারপর কার্ডে ক্লিক করে মিলিয়ে নাও। মনে থাকলে <b>মনে আছে</b>: কার্ডটা ১, ৩, ৭, ১৪, ৩০ দিন পর পর ফিরবে। মনে না থাকলে <b>মনে নেই</b>: কালই আবার আসবে। রোজ শুধু "আজকের কার্ড" শেষ করলেই হলো।</p></header>
     <section class="fc-wrap">
-      <div class="w-row"><select id="fc-filter" class="btn"><option value="all">সব কার্ড</option><option value="unk">শুধু যেগুলো মনে নেই</option>${WEEKS.map(w => `<option value="${w.n}">${esc(wkName(w))}</option>`).join('')}</select><span class="fc-tag" id="fc-count"></span></div>
+      <div class="w-row"><select id="fc-filter" class="btn"><option value="due">আজকের কার্ড (${bn(due)})</option><option value="all">সব কার্ড</option><option value="unk">যেগুলো এখনো শিখিনি</option>${WEEKS.map(w => `<option value="${w.n}">${esc(wkName(w))}</option>`).join('')}</select><span class="fc-tag" id="fc-count"></span></div>
       <button class="fc" id="fc"><div class="fc-in"><div class="fc-f" id="fc-f"></div><div class="fc-b" id="fc-b"></div></div></button>
-      <div class="w-row"><button class="btn" id="fc-prev">← আগের</button><button class="btn" id="fc-shuf">এলোমেলো</button><button class="btn primary" id="fc-know">মনে আছে ✓</button><button class="btn" id="fc-next">পরের →</button></div>
+      <div class="w-row"><button class="btn" id="fc-prev">← আগের</button><button class="btn" id="fc-shuf">এলোমেলো</button><button class="btn" id="fc-no">মনে নেই</button><button class="btn primary" id="fc-know">মনে আছে ✓</button><button class="btn" id="fc-next">পরের →</button></div>
     </section></div>`;
 }
 function mountCards() {
-  let list = [], i = 0;
+  let list = [], i = 0, f = 'due';
   const build = () => {
-    const f = $('#fc-filter').value;
-    list = CARDS.map((c, k) => ({ ...c, k })).filter(c => f === 'all' ? true : f === 'unk' ? !S.known[c.k] : String(c.w) === f);
+    f = $('#fc-filter').value;
+    list = CARDS.map((c, k) => ({ ...c, k })).filter(c => f === 'due' ? isDue(c.k) : f === 'all' ? true : f === 'unk' ? cardState(c.k).b === 0 : String(c.w) === f);
     i = 0; show();
   };
   const show = () => {
     $('#fc').classList.remove('flip');
-    if (!list.length) { $('#fc-f').textContent = 'এই তালিকায় কোনো কার্ড নেই। দারুণ!'; $('#fc-b').textContent = ''; $('#fc-count').textContent = ''; return; }
-    const c = list[i];
+    if (!list.length) { $('#fc-f').textContent = f === 'due' ? 'আজকের সব কার্ড শেষ! কাল আবার এসো।' : 'এই তালিকায় কোনো কার্ড নেই।'; $('#fc-b').textContent = ''; $('#fc-count').textContent = ''; return; }
+    i = Math.min(i, list.length - 1);
+    const c = list[i], st = cardState(c.k);
     $('#fc-f').textContent = c.f; $('#fc-b').textContent = c.b;
-    $('#fc-count').textContent = `${bn(i + 1)} / ${bn(list.length)} · ${esc(wkName(WEEKS.find(w => String(w.n) === String(c.w)) || { n: c.w }))}${S.known[c.k] ? ' · মনে আছে' : ''}`;
-    $('#fc-know').textContent = S.known[c.k] ? 'আবার দেখবো' : 'মনে আছে ✓';
+    $('#fc-count').textContent = `${bn(i + 1)} / ${bn(list.length)} · ${wkName(WEEKS.find(w => String(w.n) === String(c.w)) || { n: c.w })} · ${st.b ? `বাক্স ${bn(st.b)}` : 'নতুন'}`;
+  };
+  const answer = ok => {
+    if (!list.length) return;
+    const c = list[i], st = cardState(c.k), nb = ok ? Math.min(st.b + 1, GAP.length - 1) : 1;
+    S.cards[c.k] = { b: nb, d: today() + GAP[nb] }; delete S.known[c.k]; save();
+    if (f === 'due' && ok) list.splice(i, 1);            // শেখা হলে আজকের তালিকা থেকে বাদ
+    else if (f === 'due') list.push(list.splice(i, 1)[0]); // মনে নেই: আজকের শেষে আবার
+    else i = (i + 1) % list.length;
+    show();
   };
   $('#fc').onclick = () => $('#fc').classList.toggle('flip');
   $('#fc-next').onclick = () => { if (list.length) { i = (i + 1) % list.length; show(); } };
   $('#fc-prev').onclick = () => { if (list.length) { i = (i - 1 + list.length) % list.length; show(); } };
   $('#fc-shuf').onclick = () => { list.sort(() => Math.random() - .5); i = 0; show(); };
-  $('#fc-know').onclick = () => { if (!list.length) return; const k = list[i].k; S.known[k] ? delete S.known[k] : S.known[k] = 1; save(); show(); };
+  $('#fc-know').onclick = () => answer(true);
+  $('#fc-no').onclick = () => answer(false);
   $('#fc-filter').onchange = build;
   build();
+}
+
+// ---------- আজকের চ্যালেঞ্জ ----------
+// যেসব টপিক শুরু করেছ (বা পরের টপিক পর্যন্ত) সেখান থেকে না-করা সহজ/মাঝারি সমস্যা, দিন অনুযায়ী একটা
+function dailyPick() {
+  const upto = MAIN.findIndex(id => topicDone(id) < TOPICS[id].probs.length);
+  const ids = MAIN.slice(0, Math.max(1, (upto < 0 ? MAIN.length : upto) + 1));
+  const pool = ids.flatMap(id => TOPICS[id].probs.filter(p => (p.l === 'e' || p.l === 'm') && !S.done[p.key]).map(p => [id, p]));
+  if (!pool.length) return null;
+  const d = today(); let h = d * 2654435761 >>> 0;
+  return pool[h % pool.length];
+}
+function dailyHTML() {
+  const pick = dailyPick(); if (!pick) return '';
+  const [id, p] = pick;
+  return `<section class="daily"><h2>আজকের চ্যালেঞ্জ <span class="step">${esc(TOPICS[id].short || TOPICS[id].title)}</span></h2>
+    <p class="goal">প্রতিদিন একটা নতুন সমস্যা, তুমি যতটুকু শিখেছ তার মধ্য থেকে। পারলে "নিজে পেরেছি" দাও, কাল নতুন আসবে।</p>
+    <div class="probs">${probCard(id, p, TOPICS[id].probs.indexOf(p))}</div></section>`;
+}
+
+// ---------- সাপ্তাহিক পরীক্ষা ----------
+let TEST_QS = []; // এখন যে পরীক্ষা খোলা, তার প্রশ্নগুলো
+const testPool = w => w.label ? [] : w.ids.flatMap(id => (TOPICS[id].quiz || []).map(q => ({ ...q, id })));
+function renderTest(n) {
+  const w = WEEKS.find(x => String(x.n) === String(n));
+  const qs = TEST_QS = testPool(w).sort(() => Math.random() - .5).slice(0, 8);
+  return `<article class="page"><header class="t-head"><p class="eyebrow">${esc(wkName(w))} · পরীক্ষা</p><h1>${esc(w.title)}</h1>
+    <p class="goal">${bn(qs.length)}টা প্রশ্ন, এই সপ্তাহের টপিকগুলো থেকে এলোমেলো। প্রতিটায় একবারই উত্তর দেওয়া যাবে, তাই আগে খাতায় ভাবো। প্রতিবার নতুন করে খুললে প্রশ্ন বদলায়।</p></header>
+    <div class="quiz test" data-week="${esc(n)}">${qs.map((q, i) => `<div class="q" data-i="${i}"><p><b>${bn(i + 1)}.</b> ${fmt(q.q)}</p>${q.code ? codeBlock(q.code, '', q.lang || TOPICS[q.id].lang) : ''}
+      <div class="opts">${q.opts.map((o, j) => `<button data-j="${j}">${esc(o)}</button>`).join('')}</div><div class="why" hidden></div></div>`).join('')}</div>
+    <section class="callout" id="t-res" hidden></section>
+    <nav class="pager"><a href="#home"><small>← ফিরে যাও</small>রোডম্যাপ</a><a href="#test-${esc(n)}" data-act="retest"><small>আবার →</small>নতুন প্রশ্নে পরীক্ষা</a></nav></article>`;
+}
+function mountTest(n) {
+  const box = $('.test'), w = WEEKS.find(x => String(x.n) === String(n));
+  const qs = [...box.querySelectorAll('.q')], data = TEST_QS;
+  let right = 0, answered = 0; const wrong = new Set();
+  box.onclick = e => {
+    const b = e.target.closest('.opts button'); if (!b) return;
+    const qel = b.closest('.q'), q = data[+qel.dataset.i]; if (!q || qel.classList.contains('done')) return;
+    qel.classList.add('done'); answered++;
+    qel.querySelectorAll('.opts button').forEach((x, j) => { if (j === q.a) x.classList.add('right'); });
+    if (+b.dataset.j === q.a) right++; else { b.classList.add('wrong'); wrong.add(q.id); }
+    const why = qel.querySelector('.why'); why.hidden = false;
+    why.innerHTML = (+b.dataset.j === q.a ? '<b>ঠিক!</b> ' : '<b>হয়নি।</b> ') + fmt(q.why);
+    if (answered === qs.length) {
+      const best = S.tests[n]; if (!best || right / qs.length > best[0] / best[1]) { S.tests[n] = [right, qs.length]; save(); }
+      const pass = right / qs.length >= .7, res = $('#t-res'); res.hidden = false;
+      res.innerHTML = `<h2>${bn(right)} / ${bn(qs.length)} ${pass ? '· দারুণ!' : ''}</h2><p>${pass ? 'তুমি এই সপ্তাহ বুঝেছ। পরের সপ্তাহে যাও।' : 'আরেকটু চর্চা দরকার। এই টপিকগুলো আবার দেখো, তারপর আবার পরীক্ষা দাও:'}</p>${wrong.size ? `<div class="tps">${[...wrong].map(id => `<a href="#${id}">${esc(TOPICS[id].short || TOPICS[id].title)}</a>`).join('')}</div>` : ''}`;
+      res.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 }
 
 // ---------- tracer ----------
@@ -942,6 +1023,89 @@ const W = {
 
   psLab(el) { W.termLab(el, 'ps'); },
 
+  // কিবোর্ড: চিহ্নগুলো কোথায়, নাম কী, Dart এ কী কাজে। নিচে আসল কিবোর্ডে চাপার খেলা
+  keyboard(el) {
+    const SYM = {
+      '{': ['কোঁকড়া বন্ধনী খোলা', 'ব্লক শুরু: main, if, loop, function এর ভেতরের কাজ', 1], '}': ['কোঁকড়া বন্ধনী বন্ধ', 'ব্লক শেষ। প্রতিটা { এর একটা } লাগবে', 1],
+      '[': ['তৃতীয় বন্ধনী খোলা', 'List: [1, 2, 3], আর index: list[0]', 0], ']': ['তৃতীয় বন্ধনী বন্ধ', 'List আর index শেষ', 0],
+      '(': ['প্রথম বন্ধনী খোলা', 'function ডাকা: print(...), শর্ত: if (...)', 1], ')': ['প্রথম বন্ধনী বন্ধ', 'প্রতিটা ( এর একটা )', 1],
+      ';': ['সেমিকোলন', 'প্রতিটা নির্দেশের শেষে দাঁড়ি', 0], ':': ['কোলন', 'Map এ key: value, switch এর case:', 1],
+      "'": ['সিঙ্গেল কোট', "লেখা (String): 'হ্যালো'", 0], '"': ['ডাবল কোট', 'লেখা: "হ্যালো" (একই কাজ)', 1],
+      '=': ['সমান', 'মান রাখা: x = 5। তুলনা হলে == দুইটা', 0], '+': ['যোগ', 'যোগ, লেখা জোড়া, i++', 1], '-': ['বিয়োগ / হাইফেন', 'বিয়োগ, i--', 0],
+      '*': ['তারকা', 'গুণ', 1], '/': ['স্ল্যাশ', 'ভাগ, আর // দিয়ে comment', 0], '%': ['পার্সেন্ট', 'ভাগশেষ: 7 % 2 = 1', 1],
+      '<': ['ছোট', 'তুলনা, আর List<int> এর type', 1], '>': ['বড়', 'তুলনা, => (arrow)', 1], '!': ['বিস্ময়', 'না (!), সমান না (!=), null না (x!)', 1],
+      '&': ['অ্যান্ড', '&& মানে "এবং"', 1], '|': ['পাইপ', '|| মানে "অথবা"', 1], '?': ['প্রশ্নবোধক', 'null হতে পারে: String?, আর ?? ও ?:', 1],
+      '$': ['ডলার', "লেখার ভেতরে মান: 'বয়স $age'", 1], '_': ['আন্ডারস্কোর', 'নামে: my_app, আর _private', 1], '.': ['ডট', 'ভেতরের জিনিস: name.length, 3.14', 0],
+      ',': ['কমা', 'আলাদা করা: [1, 2], f(a, b)', 0], '\\': ['ব্যাকস্ল্যাশ', "বিশেষ অক্ষর: '\\n' মানে নতুন লাইন", 0], '~': ['টিল্ড', '~/ মানে পূর্ণ ভাগফল', 1],
+      '#': ['হ্যাশ', 'Markdown এ শিরোনাম, Dart এ কম', 1], '@': ['অ্যাট', '@override', 1],
+    };
+    const ROWS = [['`~', '1!', '2@', '3#', '4$', '5%', '6^', '7&', '8*', '9(', '0)', '-_', '=+'], ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[{', ']}', '\\|'], ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';:', "'\""], ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',<', '.>', '/?']];
+    const key = k => { const [lo, up] = [...k]; const hot = SYM[lo] || SYM[up]; return `<button class="kb-key${hot ? ' hot' : ''}" data-k="${esc(k)}">${up ? `<small>${esc(up)}</small>` : ''}<span>${esc(lo)}</span></button>`; };
+    el.innerHTML = `<div class="widget"><div class="w-title">কোডের চিহ্নগুলো কোথায়?</div>
+      <p>রঙিন বোতামগুলো কোডে বেশি লাগে। ক্লিক করে দেখো নাম আর কাজ। উপরে ছোট করে লেখা চিহ্নটা পেতে <b>Shift</b> চেপে ধরে ওই বোতাম চাপো।</p>
+      <div class="kb">${ROWS.map((r, i) => `<div class="kb-row" style="padding-left:${i * 0.6}em">${i === 3 ? '<span class="kb-key wide">Shift</span>' : ''}${r.map(key).join('')}</div>`).join('')}</div>
+      <div class="kb-info tr-note">একটা রঙিন বোতামে ক্লিক করো।</div>
+      <div class="w-title" style="margin-top:6px">খেলা: আসল কিবোর্ডে চাপো</div>
+      <div class="w-row"><span>এই চিহ্নটা টাইপ করো:</span><b class="kb-target mono"></b><input class="kb-in" maxlength="2" autocomplete="off" aria-label="এখানে টাইপ করো" placeholder="এখানে"><span class="kb-score goal"></span></div></div>`;
+    const info = $('.kb-info', el);
+    el.querySelector('.kb').onclick = e => {
+      const b = e.target.closest('.kb-key[data-k]'); if (!b) return;
+      const [lo, up] = [...b.dataset.k], parts = [lo, up].filter(c => c && SYM[c]);
+      info.innerHTML = parts.length ? parts.map(c => `<b class="mono">${esc(c)}</b> ${esc(SYM[c][0])}${SYM[c][2] ? ' (Shift লাগে)' : ''}: ${esc(SYM[c][1])}`).join('<br>') : `<b class="mono">${esc(lo)}</b>: সাধারণ অক্ষর`;
+    };
+    const list = Object.keys(SYM); let target, score = 0, tries = 0;
+    const nextT = () => { target = list[Math.floor(Math.random() * list.length)]; $('.kb-target', el).textContent = `${target}  (${SYM[target][0]})`; };
+    $('.kb-in', el).oninput = e => {
+      const v = e.target.value.slice(-1); e.target.value = ''; if (!v) return; tries++;
+      if (v === target) { score++; e.target.classList.remove('bad'); nextT(); } else e.target.classList.add('bad');
+      $('.kb-score', el).textContent = `${bn(score)} / ${bn(tries)} ঠিক`;
+    };
+    nextT();
+  },
+
+  // ভুল খোঁজো: কোডের যে লাইনে ভুল, সেটায় ক্লিক। তালিকা আসে TOPICS.debugging.bugs থেকে
+  bugHunt(el) {
+    const B = TOPICS.debugging?.bugs || []; let i = 0, found = 0, miss = 0;
+    el.innerHTML = `<div class="widget"><div class="w-title">ভুল খোঁজো</div>
+      <p class="bh-q"></p><pre class="tr-code bh-code"></pre><p class="tr-note bh-msg">ভুল লাইনে ক্লিক করো।</p>
+      <div class="w-row"><button class="btn" data-b="prev">← আগের</button><button class="btn primary" data-b="next">পরেরটা →</button><span class="fc-tag bh-n"></span></div></div>`;
+    const draw = () => {
+      const b = B[i];
+      $('.bh-q', el).innerHTML = `<b>${bn(i + 1)}/${bn(B.length)}.</b> ${fmt(b.q)}`;
+      $('.bh-code', el).innerHTML = b.code.map((l, k) => `<span class="tr-line bh-line" data-k="${k}"><span class="ln">${k + 1}</span>${l ? hl(l) : ' '}</span>`).join('');
+      $('.bh-msg', el).textContent = 'ভুল লাইনে ক্লিক করো।';
+      $('.bh-n', el).textContent = `পেয়েছ ${bn(found)}, ভুল ক্লিক ${bn(miss)}`;
+    };
+    el.onclick = e => {
+      const nav = e.target.closest('[data-b]');
+      if (nav) { i = (i + (nav.dataset.b === 'next' ? 1 : B.length - 1)) % B.length; return draw(); }
+      const line = e.target.closest('.bh-line'); if (!line || el.querySelector('.bh-line.ok')) return;
+      const b = B[i], k = +line.dataset.k;
+      if (k === b.bug) {
+        line.classList.add('ok'); found++;
+        $('.bh-msg', el).innerHTML = `<b>পেয়েছ!</b> ${fmt(b.why)}<br>ঠিক লাইন: <code>${esc(b.fix)}</code>`;
+      } else { line.classList.add('no'); miss++; $('.bh-msg', el).textContent = 'এই লাইনটা ঠিক আছে। আবার ভাবো: ছোট একটা উদাহরণ নিয়ে মাথায় চালিয়ে দেখো।'; }
+      $('.bh-n', el).textContent = `পেয়েছ ${bn(found)}, ভুল ক্লিক ${bn(miss)}`;
+    };
+    if (B.length) draw();
+  },
+
+  // শব্দকোষ: TOPICS.glossary.words থেকে, ইংরেজি বা বাংলা দিয়ে খোঁজা
+  glossLab(el) {
+    const G = TOPICS.glossary?.words || [];
+    el.innerHTML = `<div class="widget"><div class="w-title">শব্দ খোঁজো</div>
+      <input class="err-q" type="search" placeholder="ইংরেজি বা বাংলায় লেখো, যেমন: return, মান, index" aria-label="শব্দ খোঁজো">
+      <span class="fc-tag gl-n"></span><div class="gl-list"></div></div>`;
+    const q = $('.err-q', el), list = $('.gl-list', el);
+    const draw = () => {
+      const v = q.value.trim().toLowerCase();
+      const rows = G.filter(g => !v || (g.en + ' ' + g.bn + ' ' + g.m).toLowerCase().includes(v));
+      $('.gl-n', el).textContent = `${bn(rows.length)}টা শব্দ`;
+      list.innerHTML = rows.map(g => `<div class="gl-row"><div class="gl-h"><b class="mono">${esc(g.en)}</b><span class="goal">${esc(g.say)}</span><b>${esc(g.bn)}</b></div><p>${fmt(g.m)}</p>${g.ex ? `<code class="gl-ex">${esc(g.ex)}</code>` : ''}</div>`).join('') || '<p class="goal">মেলেনি। অন্যভাবে লেখো, অথবা ছোট করে।</p>';
+    };
+    q.oninput = draw; draw();
+  },
+
   // Error অভিধান: TOPICS.errors.dict থেকে কার্ড, উপরে খোঁজার বাক্স। পুরো Error মেসেজ পেস্ট করলেও মেলে
   errLab(el) {
     const D = TOPICS.errors?.dict || [];
@@ -1226,9 +1390,12 @@ const W = {
 // ---------- router ----------
 function route() {
   let id = location.hash.slice(1) || 'home';
-  if (id !== 'home' && id !== 'cards' && !TOPICS[id]) id = 'home';
+  const test = /^test-(.+)$/.exec(id)?.[1];
+  if (test && !testPool(WEEKS.find(w => String(w.n) === test) || { label: 1 }).length) id = 'home';
+  else if (!test && id !== 'home' && id !== 'cards' && !TOPICS[id]) id = 'home';
   const main = $('#main');
-  main.innerHTML = id === 'home' ? renderHome() : id === 'cards' ? renderCards() : renderTopic(id);
+  main.innerHTML = id === 'home' ? renderHome() : id === 'cards' ? renderCards() : test ? renderTest(test) : renderTopic(id);
+  if (test) mountTest(test);
   renderSide(id);
   $('#side').classList.remove('open');
   if (id === 'cards') mountCards();
@@ -1239,6 +1406,7 @@ function route() {
   try { localStorage.setItem(KEY + '-last', id); } catch (e) {}
 }
 function updSum(id) {
+  if (!TOPICS[id]) return;
   const el = $('#psum'); if (el) el.textContent = `${bn(topicDone(id))} / ${bn(TOPICS[id].probs.length)} শেষ`;
 }
 
@@ -1252,6 +1420,10 @@ $('#main').addEventListener('click', e => {
     return;
   }
   const act = t.dataset.act, card = t.closest('.prob');
+  if (act === 'retest') { e.preventDefault(); return route(); }
+  if (act === 'run') return runCode(t);
+  if (act === 'export') return exportProgress();
+  if (act === 'print' || act === 'print-sol') { document.body.classList.toggle('print-sol', act === 'print-sol'); return window.print(); }
   if (act === 'copy') {
     const code = t.closest('.code').querySelector('textarea').value;
     const done = () => { t.textContent = 'কপি হয়েছে'; setTimeout(() => t.textContent = 'কপি', 1500); };
@@ -1271,6 +1443,7 @@ $('#main').addEventListener('click', e => {
   }
 });
 $('#main').addEventListener('change', e => {
+  if (e.target.dataset.act === 'import') return importProgress(e.target);
   if (e.target.dataset.act !== 'done') return;
   const card = e.target.closest('.prob'), k = card.dataset.k;
   e.target.checked ? S.done[k] = 1 : delete S.done[k];
@@ -1278,6 +1451,69 @@ $('#main').addEventListener('change', e => {
   save(); const id = location.hash.slice(1); renderSide(id); updSum(id);
 });
 $('#menu-btn').onclick = () => $('#side').classList.toggle('open');
+
+// ---------- DartPad এ চালানো ----------
+// dartpad.dev কে iframe এ খুলি (embed=true&run=true)। সে তৈরি হলে {type:'ready', sender:নাম} পাঠায়,
+// তখন {type:'sourceCode', sourceCode} পাঠালে কোড বসিয়ে নিজেই চালায়
+const PADS = {};
+function runCode(btn) {
+  const box = btn.closest('.code'), old = box.nextElementSibling;
+  if (old?.classList.contains('runbox')) { old.remove(); btn.textContent = '▶ চালাও'; return; }
+  const code = box.querySelector('textarea').value, name = 'pad' + Math.random().toString(36).slice(2);
+  PADS[name] = code;
+  const div = document.createElement('div'); div.className = 'runbox';
+  div.innerHTML = `${/stdin|dart:io/.test(code) ? '<p class="note warn"><b>সাবধান</b>এই কোড কিবোর্ড থেকে input নেয় বা dart:io লাগে। DartPad এ এটা চলবে না, terminal এ চালাও। চাইলে input এর জায়গায় variable বসিয়ে দেখো।</p>' : ''}
+    <iframe name="${name}" src="https://dartpad.dev/?embed=true&run=true" title="DartPad" loading="lazy" allow="clipboard-write"></iframe>
+    <p class="goal">DartPad লোড হতে কয়েক সেকেন্ড লাগে, তারপর নিজেই চলবে। ডান পাশে output। কোড বদলে আবার <b>Run</b> চাপতে পারো। <a href="https://dartpad.dev" target="_blank" rel="noopener">বড় করে খোলো</a> (কোড কপি করে নিয়ে যাও)।</p>`;
+  box.after(div); btn.textContent = '✕ বন্ধ করো';
+}
+window.addEventListener('message', e => {
+  if (e.origin !== 'https://dartpad.dev' || e.data?.type !== 'ready') return;
+  const code = PADS[e.data.sender];
+  if (code !== undefined) e.source.postMessage({ type: 'sourceCode', sourceCode: code }, 'https://dartpad.dev');
+});
+
+// ---------- অগ্রগতি ব্যাকআপ ----------
+function exportProgress() {
+  const blob = new Blob([JSON.stringify({ app: 'dart-khata', v: 1, at: new Date().toISOString(), S }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `dart-khata-progress-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  $('#bk-msg').textContent = 'ফাইল নামানো হলো। নিরাপদ জায়গায় রেখে দাও।';
+}
+// ফেরত আনার সময় মুছে ফেলি না, মিলিয়ে নিই: যা আগে ছিল তাও থাকে
+function importProgress(input) {
+  const f = input.files[0]; if (!f) return;
+  f.text().then(t => {
+    const d = JSON.parse(t), o = d.S || d;
+    if (typeof o !== 'object' || !o.done) throw new Error('bad');
+    Object.assign(S.done, o.done); Object.assign(S.known, o.known || {});
+    for (const [k, v] of Object.entries(o.cards || {})) if (!S.cards[k] || v.b > S.cards[k].b) S.cards[k] = v;
+    for (const [k, v] of Object.entries(o.tests || {})) if (!S.tests[k] || v[0] / v[1] > S.tests[k][0] / S.tests[k][1]) S.tests[k] = v;
+    save(); route(); $('#bk-msg').textContent = `ফেরত এলো: ${bn(Object.keys(o.done).length)}টা শেষ করা সমস্যা।`;
+  }).catch(() => { $('#bk-msg').textContent = 'এই ফাইল পড়া গেল না। "অগ্রগতি ফাইলে নামাও" দিয়ে বানানো .json ফাইল দাও।'; });
+  input.value = '';
+}
+window.addEventListener('afterprint', () => document.body.classList.remove('print-sol'));
+
+// ---------- থিম: অটো → আলো → অন্ধকার ----------
+const THEMES = [['auto', '◐ অটো'], ['light', '☀ আলো'], ['dark', '☾ অন্ধকার']];
+let theme = 'auto';
+try { theme = localStorage.getItem(KEY + '-theme') || 'auto'; } catch (e) {}
+const applyTheme = () => {
+  if (theme === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme;
+  const b = $('#theme-btn'); if (b) { b.textContent = THEMES.find(x => x[0] === theme)[1]; b.title = 'থিম বদলাও'; }
+};
+$('#theme-btn').onclick = () => {
+  theme = THEMES[(THEMES.findIndex(x => x[0] === theme) + 1) % THEMES.length][0];
+  try { localStorage.setItem(KEY + '-theme', theme); } catch (e) {}
+  applyTheme();
+};
+applyTheme();
+
+// ---------- অফলাইন: GitHub Pages এ service worker ----------
+if ('serviceWorker' in navigator && location.protocol === 'https:' && location.hostname.endsWith('github.io')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 window.addEventListener('hashchange', route);
 if (!location.hash) { try { const l = localStorage.getItem(KEY + '-last'); if (l && (TOPICS[l] || l === 'cards')) history.replaceState(null, '', '#' + l); } catch (e) {} }
 route();

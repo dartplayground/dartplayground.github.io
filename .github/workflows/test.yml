@@ -1,0 +1,16 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - name: সাইট পরীক্ষা (সব পাতা, widget, লিংক) + Error অভিধান আসল Dart দিয়ে
+        run: sh tests/run.sh
+      - name: docs/ কি dart_roadmap/ থেকে build করা? (build.sh চালাতে ভুলে গেলে ধরা পড়বে)
+        run: git diff --exit-code -- docs

@@ -136,7 +136,7 @@ TOPICS['powershell'] = {
     'prompt এর পরে command লেখো, তারপর **Enter**। Enter না চাপা পর্যন্ত কিছুই হয় না। এই পাতার উদাহরণে prompt আর লিখছি না, শুধু command।',
     { h: 'Command এর নাম: কাজ-জিনিস (Verb-Noun)' },
     'PowerShell এর আসল command গুলোর নাম খুব নিয়মমাফিক: **কী করবে** তারপর একটা {{-}} তারপর **কিসের উপর**। নাম দেখেই কাজ বোঝা যায়।',
-    { anat: [['Get-ChildItem', 'command: Get (আনো) + ChildItem (ভেতরের জিনিস)'], ['-Path', 'parameter এর নাম ({{-}} দিয়ে শুরু)'], ['Documents', 'parameter এর মান'], ['-Force', 'switch: থাকলে চালু, না থাকলে বন্ধ']], cap: 'শব্দগুলো স্পেস দিয়ে আলাদা' },
+    { anat: [['Get-ChildItem', 'command: Get (আনো) + ChildItem (ভেতরের জিনিস)'], ['-Path', 'parameter এর নাম (- দিয়ে শুরু)'], ['Documents', 'parameter এর মান'], ['-Force', 'switch: থাকলে চালু, না থাকলে বন্ধ']], cap: 'শব্দগুলো স্পেস দিয়ে আলাদা' },
     { table: [['Verb (কাজ)', 'মানে', 'উদাহরণ'], ['Get', 'দেখাও / আনো', '{{Get-Location}}, {{Get-Content}}'], ['Set', 'বদলাও / বসাও', '{{Set-Location}}, {{Set-Content}}'], ['New', 'নতুন বানাও', '{{New-Item}}'], ['Remove', 'মুছো', '{{Remove-Item}}'], ['Copy / Move / Rename', 'কপি / সরাও / নাম বদলাও', '{{Copy-Item}}, {{Move-Item}}, {{Rename-Item}}']] },
     'লম্বা নাম রোজ লিখতে কষ্ট, তাই প্রতিটার ছোট ডাকনাম আছে, যাকে বলে **alias**। মজার ব্যাপার: Linux এর পরিচিত নামগুলোও alias হিসেবে চলে: {{ls}}, {{cd}}, {{cat}}, {{cp}}, {{mv}}, {{rm}}, {{pwd}}, {{echo}}। আর পুরানো Windows এর {{dir}}, {{copy}}, {{del}}, {{type}} ও চলে। কোন alias আসলে কোন command, দেখতে: {{Get-Alias ls}}।',
     { warn: 'নাম এক হলেও **option আলাদা**। Linux এর {{ls -a}} বা {{rm -r}} এখানে Linux এর মতো কাজ করে না। PowerShell এ লেখো {{Get-ChildItem -Force}} আর {{Remove-Item -Recurse}}। আর {{touch}} PowerShell এ নেই।' },
