@@ -35,6 +35,8 @@ const CLUES = [
   [/function|বানাও যা/, 'function: আগে ঠিক করো **কী নেবে** (parameter) আর **কী ফেরত দেবে** (return type)। তারপর ভেতরটা।'],
 ];
 const clueFor = q => CLUES.filter(([re]) => re.test(q)).slice(0, 4).map(c => c[1]);
+// data ফাইল লোড না হলে (যেমন পুরানো cache) সেই টপিক বাদ, পুরো পাতা যেন ভেঙে না যায়
+WEEKS.forEach(w => { w.ids = w.ids.filter(id => TOPICS[id]); });
 const ORDER = WEEKS.flatMap(w => w.ids);
 const LVL = { e: 'সহজ', m: 'মাঝারি', h: 'কঠিন', p: 'প্রজেক্ট' };
 

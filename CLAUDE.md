@@ -13,7 +13,7 @@ A static, no-framework, no-dependency Bangla-language Dart learning roadmap site
   ```sh
   sh build.sh
   ```
-  `build.sh` copies the `.js` files and wraps `index.html` in a full document skeleton. It inserts `</head><body>` right before the line starting with `<header class="bar">`, so keep that line intact.
+  `build.sh` copies the `.js` files, appends `?v=<content hash>` to each `<script src>` (cache-busting; GitHub Pages caches for 10 minutes), and wraps `index.html` in a full document skeleton. It inserts `</head><body>` right before the line starting with `<header class="bar">`, so keep that line intact.
 - Commit `dart_roadmap/` and the regenerated `docs/` together.
 
 To preview locally, serve `docs/` (for example `python3 -m http.server -d docs`) and open the page. The site loads Google Fonts and highlight.js (with Dart grammar) from cdnjs.
