@@ -176,6 +176,16 @@ table.t tr:last-child td { border-bottom: 0; }
 .machine .box { border: 3px solid var(--accent); border-radius: 12px; padding: 12px 18px; background: var(--accent-soft); font-weight: 600; text-align: center; }
 .machine .box small { display: block; font-family: var(--f-body); font-size: .72rem; color: var(--muted); }
 .machine .io { padding: 8px 14px; border-radius: 10px; background: var(--teal-soft); border: 2px solid var(--teal); min-width: 60px; text-align: center; font-weight: 700; }
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 10px 14px; font-family: var(--f-mono); font-size: .85rem; line-height: 1.55; cursor: text; }
+.term-out { max-height: 280px; overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.term .ps { color: var(--hl-str); }
+.term .dir { color: var(--hl-kw); font-weight: 600; }
+.term .err { color: var(--hl-num); }
+.term .dim { color: var(--code-muted); }
+.term-in { display: flex; align-items: baseline; }
+.widget .term-in input { flex: 1; min-width: 0; width: auto; background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; padding: 0 0 0 .5em; outline: none; caret-color: var(--hl-fn); }
+.term-mis ol { margin: 4px 0 0; padding-left: 1.4em; }
+.term-mis li.ok { color: var(--ok); text-decoration: line-through; }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -315,6 +325,7 @@ table.t tr:last-child td { border-bottom: 0; }
 <script src="content4.js"></script>
 <script src="content5.js"></script>
 <script src="content6.js"></script>
+<script src="content7.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

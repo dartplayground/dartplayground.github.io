@@ -1,7 +1,7 @@
 // ---------- data: সপ্তাহ ভাগ ----------
 const WEEKS = [
   { n: 1, title: 'ভাবতে শেখা, Output, Variable, String', ids: ['think', 'setup', 'variables', 'strings-basic'] },
-  { n: 2, title: 'অপারেটর, Input আর Null', ids: ['operators', 'conversion', 'null-safety'] },
+  { n: 2, title: 'অপারেটর, Terminal, Input আর Null', ids: ['operators', 'terminal', 'conversion', 'null-safety'] },
   { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'switch-ternary'] },
   { n: 4, title: 'Loop আর Bug খোঁজা', ids: ['for-loop', 'while-loop', 'nested-loop', 'debugging'] },
   { n: 5, title: 'Function আর Recursion', ids: ['functions-basic', 'parameters', 'arrow-function', 'recursion'] },
@@ -11,7 +11,7 @@ const WEEKS = [
   { n: 9, title: 'OOP: Class থেকে Extension', ids: ['class-object', 'inheritance', 'oop-advanced'] },
   { n: 10, title: 'Generics, Record আর Error', ids: ['generics', 'records-patterns', 'exceptions'] },
   { n: 11, title: 'JSON, Async, Stream, Isolate', ids: ['json', 'async', 'streams', 'isolates'] },
-  { n: 12, title: 'Mini Project', ids: ['projects'] },
+  { n: 12, title: 'Compile, Argument আর Mini Project', ids: ['dart-compile', 'projects'] },
 ];
 
 // সমস্যার লেখায় এই শব্দগুলো থাকলে "কিভাবে ভাববো?" প্যানেলে সূত্র দেখায়
@@ -46,7 +46,8 @@ const fmt = s => esc(s)
   .replace(/\{\{(.+?)\}\}/g, (_, c) => `<code>${c}</code>`)
   .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-const hl = code => window.hljs ? hljs.highlight(code, { language: 'dart', ignoreIllegals: true }).value : esc(code);
+const hl = (code, lang = 'dart') => window.hljs?.getLanguage(lang) ? hljs.highlight(code, { language: lang, ignoreIllegals: true }).value : esc(code);
+const LANG_LABEL = { bash: 'terminal', plaintext: 'text' };
 const weekOf = id => WEEKS.find(w => w.ids.includes(id));
 
 // ---------- progress (শুধু এই ব্রাউজারে) ----------
@@ -71,14 +72,14 @@ const total = () => ORDER.reduce((a, id) => a + (TOPICS[id]?.probs.length || 0),
 const totalDone = () => ORDER.reduce((a, id) => a + topicDone(id), 0);
 
 // ---------- blocks ----------
-function codeBlock(code, out) {
-  return `<div class="code"><div class="code-bar"><span>dart</span><button data-act="copy">কপি</button></div>
-    <pre><code>${hl(code)}</code></pre>${out ? `<div class="out">${esc(out)}</div>` : ''}<textarea hidden>${esc(code)}</textarea></div>`;
+function codeBlock(code, out, lang = 'dart') {
+  return `<div class="code"><div class="code-bar"><span>${LANG_LABEL[lang] || lang}</span><button data-act="copy">কপি</button></div>
+    <pre><code>${hl(code, lang)}</code></pre>${out ? `<div class="out">${esc(out)}</div>` : ''}<textarea hidden>${esc(code)}</textarea></div>`;
 }
-function block(b) {
+function block(b, lang) {
   if (typeof b === 'string') return `<p>${fmt(b)}</p>`;
   if (b.h) return `<h3>${fmt(b.h)}</h3>`;
-  if (b.code) return codeBlock(b.code, b.out);
+  if (b.code) return codeBlock(b.code, b.out, b.lang || lang);
   if (b.list) return `<ul class="list">${b.list.map(x => `<li>${fmt(x)}</li>`).join('')}</ul>`;
   if (b.tip) return `<div class="note tip"><b>টিপস</b>${fmt(b.tip)}</div>`;
   if (b.warn) return `<div class="note warn"><b>সাবধান</b>${fmt(b.warn)}</div>`;
@@ -197,13 +198,13 @@ function renderTopic(id) {
     <p class="goal"><b>আজকের লক্ষ্য:</b> ${fmt(t.goal)}</p>
     <div class="jump"><button data-go="s-learn">শেখো</button><button data-go="s-how">কিভাবে কাজ করে</button>${t.quiz?.length ? '<button data-go="s-quiz">কুইজ</button>' : ''}<button data-go="s-prob">সমস্যা (${bn(t.probs.length)})</button></div>
   </header>
-  <section id="s-learn"><h2><span class="step">ধাপ ১</span>শেখো</h2>${t.learn.map(block).join('')}</section>
+  <section id="s-learn"><h2><span class="step">ধাপ ১</span>শেখো</h2>${t.learn.map(b => block(b, t.lang)).join('')}</section>
   <section id="s-how"><h2><span class="step">ধাপ ২</span>কিভাবে কাজ করে</h2>
     <ol class="how">${t.how.map(x => `<li>${fmt(x)}</li>`).join('')}</ol>
     ${(t.traces || []).map(tr => `<div data-trace="${tr}"></div>`).join('')}
   </section>
   ${t.quiz?.length ? `<section id="s-quiz"><h2><span class="step">ধাপ ৩</span>Output কী হবে?</h2><p>আগে মাথায় বা খাতায় উত্তর বের করো, তারপর ক্লিক করো।</p><div class="quiz">${t.quiz.map((q, i) => `
-    <div class="q" data-q="${i}"><p><b>${bn(i + 1)}.</b> ${fmt(q.q)}</p>${q.code ? codeBlock(q.code) : ''}
+    <div class="q" data-q="${i}"><p><b>${bn(i + 1)}.</b> ${fmt(q.q)}</p>${q.code ? codeBlock(q.code, '', q.lang || t.lang) : ''}
       <div class="opts">${q.opts.map((o, j) => `<button data-act="ans" data-j="${j}">${esc(o)}</button>`).join('')}</div>
       <div class="why" hidden>${fmt(q.why)}</div></div>`).join('')}</div></section>` : ''}
   <section id="s-prob"><h2><span class="step">ধাপ ৪</span>প্র্যাকটিস</h2>
@@ -216,10 +217,11 @@ function renderTopic(id) {
 }
 
 function probCard(id, p, i) {
-  const k = p.key, done = !!S.done[k];
+  const k = p.key, done = !!S.done[k], lang = p.lang || TOPICS[id].lang || 'dart';
+  const clues = lang === 'dart' ? clueFor(p.q) : []; // শব্দ-সূত্রগুলো Dart কোডের জন্য, terminal command এর জন্য না
   return `<div class="prob ${done ? 'isdone' : ''}" data-l="${p.l}" data-k="${k}">
     <div class="ph"><span class="num">${bn(i + 1)}</span><div class="qt">${fmt(p.q)}</div><span class="lvl ${p.l}">${LVL[p.l]}</span></div>
-    ${p.code ? codeBlock(p.code) : ''}
+    ${p.code ? codeBlock(p.code, '', lang) : ''}
     ${p.out ? `<p class="goal">প্রত্যাশিত output: <code>${esc(p.out)}</code></p>` : ''}
     <div class="pact"><button class="btn think" data-act="think">কিভাবে ভাববো?</button>${p.hint ? '<button class="btn" data-act="hint">হিন্ট</button>' : ''}<button class="btn" data-act="sol">সমাধান</button>
       <label><input type="checkbox" id="cb-${k}" data-act="done" ${done ? 'checked' : ''}> নিজে পেরেছি</label></div>
@@ -229,7 +231,7 @@ function probCard(id, p, i) {
         <li>নিজের ভাষায় এক লাইনে লেখো: আমাকে কী দেওয়া হচ্ছে (input), আর কী বের করতে হবে (output)?</li>
         <li>সবচেয়ে ছোট একটা উদাহরণ নাও, কম্পিউটার ছাড়া খাতায় হাতে সমাধান করো। নিজে কী কী করলে, প্রতিটা কাজ আলাদা লাইনে লেখো।</li>
         <li>সেই কাজগুলোকে বাংলায় ধাপ ১, ২, ৩ করে সাজাও, যেন একটা বোকা রোবটও বুঝতে পারে।</li>
-        ${clueFor(p.q).length ? `<li>সমস্যার শব্দ থেকে সূত্র:<ul>${clueFor(p.q).map(c => `<li>${fmt(c)}</li>`).join('')}</ul></li>` : ''}
+        ${clues.length ? `<li>সমস্যার শব্দ থেকে সূত্র:<ul>${clues.map(c => `<li>${fmt(c)}</li>`).join('')}</ul></li>` : ''}
         <li>প্রতিটা বাংলা ধাপের পাশে এক-দুই লাইন কোড লেখো। পুরোটা না পারলে যতটুকু পারো লিখে চালাও, তারপর পরের ধাপ।</li>
         <li>ধাপ ২ এর উদাহরণ দিয়ে চালিয়ে মেলাও। না মিললে খাতায় dry run টেবিল।</li>
       </ol>
@@ -237,7 +239,7 @@ function probCard(id, p, i) {
     </div>
     ${p.hint ? `<div class="hint" hidden>${fmt(p.hint)}</div>` : ''}
     <div class="gate" hidden>নিজে অন্তত ১৫ মিনিট চেষ্টা করেছ? <button class="btn primary" data-act="reveal">হ্যাঁ, সমাধান দেখাও</button><button class="btn" data-act="ungate">আরেকটু চেষ্টা করি</button></div>
-    <div class="solbox" hidden>${p.ans ? `<div class="ansbox">${p.ans.split('\n').map(l => `<p>${fmt(l)}</p>`).join('')}</div>` : ''}${p.note ? `<p>${fmt(p.note)}</p>` : ''}${p.sol ? codeBlock(p.sol) : ''}</div>
+    <div class="solbox" hidden>${p.ans ? `<div class="ansbox">${p.ans.split('\n').map(l => `<p>${fmt(l)}</p>`).join('')}</div>` : ''}${p.note ? `<p>${fmt(p.note)}</p>` : ''}${p.sol ? codeBlock(p.sol, '', lang) : ''}</div>
   </div>`;
 }
 
@@ -279,8 +281,8 @@ function mountTrace(el, id) {
   const T = TRACES[id]; if (!T) return;
   let i = 0, timer = null;
   el.innerHTML = `<div class="trace"><div class="tr-top"><span class="label">${esc(T.title || 'ধাপে ধাপে দেখো (Dry Run)')}</span><span class="tr-count"></span></div>
-    <div class="tr-grid"><pre class="tr-code">${T.code.map((l, k) => `<span class="tr-line" data-k="${k}"><span class="ln">${k + 1}</span>${l ? hl(l) : ' '}</span>`).join('')}</pre>
-    <div class="tr-side"><div class="tr-box"><div class="label">VARIABLE এর বাক্স</div><div class="tr-vars"></div></div><div class="tr-box"><div class="label">OUTPUT</div><pre class="tr-out"></pre></div></div></div>
+    <div class="tr-grid"><pre class="tr-code">${T.code.map((l, k) => `<span class="tr-line" data-k="${k}"><span class="ln">${k + 1}</span>${l ? hl(l, T.lang) : ' '}</span>`).join('')}</pre>
+    <div class="tr-side"><div class="tr-box"><div class="label">${esc(T.box || 'VARIABLE এর বাক্স')}</div><div class="tr-vars"></div></div><div class="tr-box"><div class="label">OUTPUT</div><pre class="tr-out"></pre></div></div></div>
     <p class="tr-note"></p>
     <div class="tr-ctrl"><button class="btn" data-a="prev">← আগের ধাপ</button><button class="btn primary" data-a="next">পরের ধাপ →</button><button class="btn" data-a="play">▶ নিজে চলুক</button><button class="btn" data-a="reset">শুরু থেকে</button></div></div>`;
   const draw = () => {
@@ -554,6 +556,209 @@ const W = {
   truth(el) {
     const r = [[true, true], [true, false], [false, true], [false, false]];
     el.innerHTML = `<div class="tablewrap"><table class="t"><thead><tr><th>a</th><th>b</th><th>a && b (দুইটাই?)</th><th>a || b (যেকোনো একটা?)</th><th>!a (উল্টো)</th></tr></thead><tbody>${r.map(([a, b]) => `<tr>${[a, b, a && b, a || b, !a].map(x => `<td class="mono" style="color:var(${x ? '--ok' : '--bad'})">${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  },
+
+  // নকল Linux terminal: ব্রাউজারের ভেতরে ছোট একটা ফাইল-গাছ, আসল কম্পিউটারে কিছু হয় না
+  termLab(el) {
+    const HOME = '/home/rafi';
+    const D = c => ({ d: 1, c }), F = t => ({ t });
+    const fresh = () => D({
+      home: D({ rafi: D({
+        Documents: D({ 'notes.txt': F('বাজারের লিস্ট: ডিম, দুধ, রুটি') }),
+        Pictures: D({ 'cat.jpg': F('(এটা ছবি, লেখা না)'), 'school.jpg': F('(এটা ছবি, লেখা না)') }),
+        dart_practice: D({ 'hello.dart': F("void main() {\n  print('Hello, Dart!');\n}") }),
+        '.bashrc': F('# shell এর সেটিংস, লুকানো ফাইল'),
+      }) }),
+      etc: D({ hostname: F('pc') }),
+      bin: D({}),
+    });
+    const MIS = [
+      ['{{pwd}} লিখে দেখো তুমি কোথায় আছো', (c) => c[0] === 'pwd'],
+      ['{{dart_practice}} ফোল্ডারে ঢোকো', () => cwd === HOME + '/dart_practice'],
+      ['ওখানে {{my_app}} নামে ফোল্ডার বানাও', () => get(HOME + '/dart_practice/my_app')?.d],
+      ['{{my_app}} এর ভেতরে {{main.dart}} ফাইল বানাও', () => { const f = get(HOME + '/dart_practice/my_app/main.dart'); return f && !f.d; }],
+      ['{{hello.dart}} এর ভেতরে কী লেখা আছে দেখো', (c) => c[0] === 'cat' && c.some(a => a.endsWith('hello.dart'))],
+      ['{{notes.txt}} এর একটা কপি বানাও, নাম {{backup.txt}}', () => find(root, 'backup.txt')],
+      ['লুকানো ফাইলসহ home এর সব দেখো', (c) => c[0] === 'ls' && c.some(a => /^-\w*a/.test(a))],
+      ['{{Pictures}} ফোল্ডারটা পুরোটা মুছে ফেলো', () => !get(HOME + '/Pictures')],
+    ];
+    let root, cwd, hist, hi, done;
+    el.innerHTML = `<div class="widget"><div class="w-title">নকল Terminal</div>
+      <p>${fmt('এখানে যা খুশি লেখো, কিছু নষ্ট হবে না। {{help}} লিখলে সব command দেখাবে। **Tab** চাপলে নাম নিজে পূর্ণ হয়, **↑** চাপলে আগের command ফেরত আসে।')}</p>
+      <div class="term"><div class="term-out"></div><label class="term-in"><span class="ps"></span><input spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="command লেখো"></label></div>
+      <div class="term-mis"><b>মিশন</b> (উপর থেকে নিচে করো)<ol>${MIS.map(m => `<li>${fmt(m[0])}</li>`).join('')}</ol></div>
+      <div class="w-row"><button class="btn" data-t="reset">শুরু থেকে</button></div></div>`;
+    const out = $('.term-out', el), inp = $('input', el), ps = $('.term-in .ps', el), lis = el.querySelectorAll('.term-mis li');
+
+    // path: ~ আর relative path কে পূর্ণ path বানাও, . আর .. বুঝে
+    const abs = p => {
+      if (p.startsWith('~')) p = HOME + p.slice(1);
+      else if (!p.startsWith('/')) p = cwd + '/' + p;
+      const parts = [];
+      for (const x of p.split('/')) { if (x === '..') parts.pop(); else if (x && x !== '.') parts.push(x); }
+      return '/' + parts.join('/');
+    };
+    const get = p => p.split('/').filter(Boolean).reduce((n, x) => n?.d ? n.c[x] : undefined, root);
+    const split = p => { const i = p.lastIndexOf('/'); return [get(p.slice(0, i) || '/'), p.slice(i + 1)]; };
+    const find = (n, name) => n.d && Object.entries(n.c).some(([k, v]) => k === name || find(v, name));
+    const pretty = p => p === HOME ? '~' : p.startsWith(HOME + '/') ? '~' + p.slice(HOME.length) : p;
+    const clone = n => n.d ? D(Object.fromEntries(Object.entries(n.c).map(([k, v]) => [k, clone(v)]))) : F(n.t);
+    const prompt = () => `rafi@pc:${pretty(cwd)}$`;
+    const print = (html, cls = '') => {
+      const d = document.createElement('div'); if (cls) d.className = cls; d.innerHTML = html; out.append(d);
+      while (out.children.length > 300) out.firstChild.remove();
+    };
+
+    const run = line => {
+      const toks = (line.match(/"[^"]*"|'[^']*'|\S+/g) || []).map(t => t.replace(/^(["'])(.*)\1$/, '$2'));
+      let redir = null;
+      const r = toks.findIndex(t => t === '>' || t === '>>');
+      if (r > -1) { redir = [toks[r], toks[r + 1]]; toks.splice(r); }
+      const [cmd, ...args] = toks;
+      const flags = args.filter(a => /^-\w/.test(a)).join(''), names = args.filter(a => !/^-\w/.test(a));
+      const res = [], err = m => res.push([esc(m), 'err']), say = (m, cls = '') => res.push([m, cls]);
+      const C = {
+        help: () => say(esc([
+          'pwd              এখন কোথায় আছি', 'ls [-a] [-l] [ফোল্ডার]  কী কী আছে', 'cd ফোল্ডার       ঢোকো (cd .. = এক ধাপ উপরে, cd ~ = home)',
+          'mkdir [-p] নাম   ফোল্ডার বানাও', 'touch নাম        খালি ফাইল বানাও', 'cat ফাইল         ফাইলের ভেতরের লেখা দেখাও',
+          'echo লেখা        লেখা দেখাও (> ফাইল = ফাইলে লেখো, >> ফাইল = শেষে যোগ করো)', 'cp উৎস গন্তব্য    কপি করো (ফোল্ডার হলে -r)',
+          'mv উৎস গন্তব্য    সরাও বা নাম বদলাও', 'rm [-r] নাম       মুছে ফেলো', 'rmdir নাম        খালি ফোল্ডার মোছো',
+          'whoami, history, clear',
+        ].join('\n')), 'dim'),
+        pwd: () => say(esc(cwd)),
+        whoami: () => say('rafi'),
+        history: () => hist.forEach((h, i) => say(esc(`${String(i + 1).padStart(4)}  ${h}`))),
+        clear: () => { out.innerHTML = ''; },
+        echo: () => say(esc(names.join(' '))),
+        ls: () => {
+          for (const n of names.length ? names : ['.']) {
+            const p = abs(n), node = get(p);
+            if (!node) { err(`ls: cannot access '${n}': No such file or directory`); continue; }
+            if (names.length > 1) say(esc(n + ':'));
+            const items = node.d ? Object.keys(node.c).sort().filter(k => flags.includes('a') || !k.startsWith('.')) : [n];
+            if (node.d && flags.includes('a')) items.unshift('.', '..');
+            const isDir = k => !node.d ? false : k === '.' || k === '..' || node.c[k]?.d;
+            if (flags.includes('l')) items.forEach(k => say(`${isDir(k) ? 'drwxr-xr-x' : '-rw-r--r--'}  rafi  ${isDir(k) ? `<span class="dir">${esc(k)}</span>` : esc(k)}`));
+            else if (items.length) say(items.map(k => isDir(k) ? `<span class="dir">${esc(k)}</span>` : esc(k)).join('  '));
+          }
+        },
+        cd: () => {
+          const p = abs(names[0] || '~'), node = get(p);
+          if (!node) err(`bash: cd: ${names[0]}: No such file or directory`);
+          else if (!node.d) err(`bash: cd: ${names[0]}: Not a directory`);
+          else cwd = p;
+        },
+        mkdir: () => {
+          if (!names.length) return err('mkdir: missing operand');
+          for (const n of names) {
+            const p = abs(n);
+            if (get(p)) { err(`mkdir: cannot create directory '${n}': File exists`); continue; }
+            if (flags.includes('p')) { p.split('/').filter(Boolean).reduce((node, x) => node?.d ? (node.c[x] ||= D({})) : node, root); continue; }
+            const [par, name] = split(p);
+            if (!par?.d) err(`mkdir: cannot create directory '${n}': No such file or directory`); else par.c[name] = D({});
+          }
+        },
+        touch: () => {
+          if (!names.length) return err('touch: missing file operand');
+          for (const n of names) {
+            const [par, name] = split(abs(n));
+            if (!par?.d) err(`touch: cannot touch '${n}': No such file or directory`); else par.c[name] ||= F('');
+          }
+        },
+        cat: () => {
+          if (!names.length) return err('cat: কোন ফাইল? যেমন: cat notes.txt');
+          for (const n of names) {
+            const node = get(abs(n));
+            if (!node) err(`cat: ${n}: No such file or directory`); else if (node.d) err(`cat: ${n}: Is a directory`); else if (node.t) say(esc(node.t));
+          }
+        },
+        rm: () => {
+          if (!names.length) return err('rm: missing operand');
+          for (const n of names) {
+            const p = abs(n), node = get(p), [par, name] = split(p);
+            if (!node) err(`rm: cannot remove '${n}': No such file or directory`);
+            else if (node.d && !flags.includes('r')) err(`rm: cannot remove '${n}': Is a directory`);
+            else if (HOME.startsWith(p)) err(`rm: '${n}' মুছলে তোমার home ই থাকবে না! এটা করতে দিচ্ছি না।`);
+            else delete par.c[name];
+          }
+        },
+        rmdir: () => {
+          for (const n of names) {
+            const p = abs(n), node = get(p), [par, name] = split(p);
+            if (!node) err(`rmdir: failed to remove '${n}': No such file or directory`);
+            else if (!node.d) err(`rmdir: failed to remove '${n}': Not a directory`);
+            else if (Object.keys(node.c).length) err(`rmdir: failed to remove '${n}': Directory not empty`);
+            else delete par.c[name];
+          }
+        },
+        cp: () => move(true),
+        mv: () => move(false),
+      };
+      const move = copy => {
+        const name = copy ? 'cp' : 'mv';
+        if (names.length !== 2) return err(`${name}: দুইটা নাম লাগবে, যেমন: ${name} notes.txt backup.txt`);
+        const [a, b] = names, pa = abs(a), node = get(pa);
+        if (!node) return err(`${name}: cannot stat '${a}': No such file or directory`);
+        if (copy && node.d && !flags.includes('r')) return err(`cp: -r not specified; omitting directory '${a}'`);
+        let pb = abs(b);
+        if (get(pb)?.d) pb += '/' + pa.split('/').pop();
+        if (!copy && (pb + '/').startsWith(pa + '/')) return err(`mv: cannot move '${a}' to a subdirectory of itself`);
+        const [par, nm] = split(pb);
+        if (!par?.d) return err(`${name}: cannot create '${b}': No such file or directory`);
+        par.c[nm] = copy ? clone(node) : node;
+        if (!copy) { const [op, on] = split(pa); if (op !== par || on !== nm) delete op.c[on]; }
+      };
+
+      if (!cmd) return;
+      if (cmd === 'dart' || cmd === 'code' || cmd === 'nano') err(`এটা নকল terminal, এখানে ${cmd} নেই। নিজের কম্পিউটারের terminal এ চালাও।`);
+      else if (cmd === 'sudo') err('sudo মানে admin এর ক্ষমতা। নকল terminal এ লাগে না, আসলটাতেও খুব সাবধানে।');
+      else if (C[cmd]) C[cmd]();
+      else err(`${cmd}: command not found`);
+
+      if (redir) {
+        const [op, f] = redir, [par, name] = f ? split(abs(f)) : [];
+        const text = res.filter(r => r[1] !== 'err').map(r => r[0].replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&')).join('\n');
+        if (!f) err('bash: syntax error: > এর পরে ফাইলের নাম লাগবে');
+        else if (!par?.d) err(`bash: ${f}: No such file or directory`);
+        else if (par.c[name]?.d) err(`bash: ${f}: Is a directory`);
+        else { const old = op === '>>' && par.c[name]?.t; par.c[name] = F(old ? old + '\n' + text : text); }
+        res.splice(0, res.length, ...res.filter(r => r[1] === 'err'));
+      }
+      res.forEach(([m, cls]) => print(m, cls));
+      return toks;
+    };
+
+    const check = toks => MIS.forEach(([, ok], i) => { if (!done[i] && ok(toks || [])) { done[i] = 1; lis[i].classList.add('ok'); } });
+    const reset = () => {
+      root = fresh(); cwd = HOME; hist = []; hi = 0; done = [];
+      lis.forEach(l => l.classList.remove('ok'));
+      out.innerHTML = ''; print('নকল terminal চালু। শুরু করতে help লেখো।', 'dim'); ps.textContent = prompt();
+    };
+    // Tab: শেষ শব্দের শুরুটা মিলিয়ে নাম পূর্ণ করো
+    const complete = () => {
+      const v = inp.value, m = v.match(/(\S*)$/), word = m[1], slash = word.lastIndexOf('/');
+      const dirPart = word.slice(0, slash + 1), pre = word.slice(slash + 1), dir = get(abs(dirPart || '.'));
+      if (!dir?.d) return;
+      const hits = Object.keys(dir.c).filter(k => k.startsWith(pre) && (pre.startsWith('.') || !k.startsWith('.')));
+      if (hits.length === 1) inp.value = v.slice(0, v.length - word.length) + dirPart + hits[0] + (dir.c[hits[0]].d ? '/' : ' ');
+      else if (hits.length > 1) { print(`<span class="ps">${esc(prompt())}</span> ${esc(v)}`); print(hits.map(k => dir.c[k].d ? `<span class="dir">${esc(k)}</span>` : esc(k)).join('  ')); out.scrollTop = out.scrollHeight; }
+    };
+    inp.onkeydown = e => {
+      if (e.key === 'Enter') {
+        const line = inp.value; inp.value = '';
+        print(`<span class="ps">${esc(prompt())}</span> ${esc(line)}`);
+        if (line.trim()) { hist.push(line.trim()); hi = hist.length; }
+        check(run(line));
+        ps.textContent = prompt(); out.scrollTop = out.scrollHeight;
+      } else if (e.key === 'Tab') { e.preventDefault(); complete(); }
+      else if (e.key === 'ArrowUp' && hi > 0) { e.preventDefault(); inp.value = hist[--hi]; }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi + 1, hist.length); inp.value = hist[hi] || ''; }
+      else if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); out.innerHTML = ''; }
+      else if (e.key === 'c' && e.ctrlKey && !getSelection().toString()) { e.preventDefault(); print(`<span class="ps">${esc(prompt())}</span> ${esc(inp.value)}^C`); inp.value = ''; }
+    };
+    $('.term', el).onclick = () => { if (!getSelection().toString()) inp.focus({ preventScroll: true }); };
+    $('[data-t=reset]', el).onclick = reset;
+    reset();
   },
 };
 

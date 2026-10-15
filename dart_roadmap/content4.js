@@ -1496,7 +1496,7 @@ void main() async {
 };
 
 TOPICS['projects'] = {
-  short: 'Mini Project', title: 'Mini Project: সব একসাথে', days: 'পুরো সপ্তাহ',
+  short: 'Mini Project', title: 'Mini Project: সব একসাথে', days: 'দিন ৩–৭',
   goal: 'এতদিনের সব জিনিস মিলিয়ে ছোট ছোট পূর্ণ প্রোগ্রাম বানানো। এখানেই আসল শেখা হয়।',
   learn: [
     'প্রজেক্ট মানে আর কেউ ধাপ বলে দেবে না। তোমাকেই ঠিক করতে হবে কোন class লাগবে, কোন function লাগবে, কোন loop লাগবে। এটাই প্রোগ্রামারের আসল কাজ।',
