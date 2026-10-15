@@ -2,7 +2,7 @@
 // আর debugging টপিকের "ভুল খোঁজো" খেলার তালিকা (TOPICS.debugging.bugs, bugHunt widget পড়ে)
 
 TOPICS['debugger'] = {
-  short: 'VS Code Debugger', title: 'Debugger: কোড থামিয়ে ভেতরে দেখা', days: 'Function শেখার পরে',
+  short: 'Debugger (VS Code, Android Studio)', title: 'Debugger: কোড থামিয়ে ভেতরে দেখা', days: 'Function শেখার পরে',
   goal: 'print দিয়ে আন্দাজ না করে, কোড যেকোনো লাইনে থামিয়ে প্রতিটা variable এর মান নিজের চোখে দেখা আর এক লাইন এক লাইন করে চালানো।',
   learn: [
     'এতদিন ভুল খুঁজতে কোডে {{print}} বসিয়েছ। কাজ করে, কিন্তু প্রতিবার print লিখতে, চালাতে, তারপর মুছতে হয়। **Debugger** হলো এর চেয়ে শক্তিশালী যন্ত্র: কোডকে যেকোনো লাইনে **থামিয়ে** রাখে, তখন সব variable এর মান দেখা যায়, তারপর এক লাইন করে সামনে আগানো যায়। এই সাইটের "ধাপে ধাপে দেখো" যন্ত্রের মতো, কিন্তু তোমার নিজের যেকোনো কোডে।',
@@ -26,6 +26,16 @@ void main() {
     'উপরের উদাহরণে বারবার **F10** চাপো আর VARIABLES দেখো। {{i}} 1, 2, 3, 4 হয়, তারপর {{i = 5}} হতেই loop থেকে বেরিয়ে যায়, {{sum += 5}} হয়ই না! তাই 10। ভুলটা চোখের সামনে: শর্ত হওয়ার কথা {{i <= n}}।',
     { h: 'আরো কিছু সুবিধা' },
     { list: ['**Hover**: থামা অবস্থায় কোডের যেকোনো variable এর উপর মাউস রাখলে তার মান দেখায়।', '**WATCH**: কোনো হিসাব লিখে রাখো (যেমন {{sum + i}} বা {{list.length}}), প্রতি ধাপে নিজে আপডেট হবে।', '**CALL STACK**: কোন function কাকে ডেকে এখানে এসেছি। Recursion বুঝতে দারুণ।', '**Conditional breakpoint**: লাল বিন্দুতে ডান ক্লিক → **Edit Breakpoint** → শর্ত লেখো, যেমন {{i == 50}}। 1000 বার ঘোরা loop এ শুধু দরকারি বারে থামবে।', '**DEBUG CONSOLE**: থামা অবস্থায় এখানে Dart লিখে মান দেখা যায়, যেমন {{sum * 2}}।'] },
+    { h: 'Android Studio আর IntelliJ IDEA তে' },
+    'অনেকে VS Code এর বদলে **Android Studio** (Flutter app এর জন্য জনপ্রিয়) বা **IntelliJ IDEA** ব্যবহার করে। দুইটা একই কোম্পানির (JetBrains), একই নিয়মে চলে। ধারণা হুবহু এক: breakpoint, থামা, এক পা এক পা। শুধু বোতাম আর চাবি আলাদা।',
+    { h: 'একবারের সেটআপ' },
+    { list: ['**Settings → Plugins** (Mac এ **Android Studio → Settings**) এ গিয়ে **Dart** plugin install করো। Android Studio তে **Flutter** plugin নিলে Dart নিজেই সাথে আসে।', 'IntelliJ এ শুধু Dart দিয়ে কাজ করলে: **Settings → Languages & Frameworks → Dart** এ **Enable Dart support** টিক দাও, আর **Dart SDK path** এ Dart যেখানে install করা সেই ফোল্ডার দেখাও।', '**File → Open** দিয়ে প্রজেক্টের ফোল্ডার খোলো ({{dart create}} দিয়ে বানানো হলে সবচেয়ে ভালো, যেখানে {{pubspec.yaml}} আছে)।'] },
+    { h: 'থামানো আর চালানো' },
+    { list: ['লাইন নম্বরের **ডান পাশের** ফাঁকা জায়গায় (gutter) ক্লিক করো: **লাল গোল** breakpoint।', '{{main}} এর পাশে সবুজ **▶** এ ক্লিক করে **Debug \'main.dart\'** বেছে নাও। (অথবা উপরের toolbar এ সবুজ পোকার ছবি 🐞, বা **Shift + F9**)', 'থামলে নিচে **Debug** জানালা খোলে। বামে **Frames** (কে কাকে ডেকেছে = call stack), ডানে **Variables** (সব variable এর মান)। কোডের ভেতরেও প্রতিটা লাইনের পাশে ধূসর রঙে মান দেখায়!', 'variable এর উপর ডান ক্লিক → **Add to Watches**, অথবা Variables এর উপরে {{+}} দিয়ে নিজের হিসাব যোগ করো।'] },
+    { table: [['কাজ', 'VS Code', 'Android Studio / IntelliJ (Windows, Linux)', 'Mac (Android Studio / IntelliJ)'], ['breakpoint দাও / সরাও', '**F9**', '**Ctrl + F8**', '**Cmd + F8**'], ['Debug শুরু', '**F5**', '**Shift + F9**', '**Ctrl + D**'], ['পরের breakpoint পর্যন্ত (Resume)', '**F5**', '**F9**', '**Cmd + Option + R**'], ['এক লাইন (Step Over)', '**F10**', '**F8**', '**F8**'], ['function এর ভেতরে (Step Into)', '**F11**', '**F7**', '**F7**'], ['function থেকে বের (Step Out)', '**Shift + F11**', '**Shift + F8**', '**Shift + F8**'], ['cursor যেখানে সেখান পর্যন্ত চলো', 'ডান ক্লিক → Run to Cursor', '**Alt + F9**', '**Option + F9**'], ['থামা অবস্থায় হিসাব করে দেখো', 'DEBUG CONSOLE এ লেখো', '**Alt + F8** (Evaluate Expression)', '**Option + F8**'], ['বন্ধ করো', '**Shift + F5**', '**Ctrl + F2**', '**Cmd + F2**']] },
+    { tip: '**Evaluate Expression** (Alt + F8) খুব কাজের: থামা অবস্থায় যেকোনো Dart লিখে ফল দেখো, যেমন {{list.where((x) => x < 0).toList()}}। কোড না বদলেই প্রশ্ন করা যায়।' },
+    { list: ['**Conditional breakpoint**: লাল গোলে **ডান ক্লিক** → **Condition** বাক্সে শর্ত লেখো, যেমন {{i == 50}}।', '**সব breakpoint এক জায়গায়**: **Ctrl + Shift + F8** (Mac এ **Cmd + Shift + F8**)।', '**Flutter app**: Debug মোডে চালালে কোড বদলে save করলেই hot reload। থামা অবস্থাতেও breakpoint কাজ করে।'] },
+    { tip: 'সব shortcut এক জায়গায় দেখতে [Shortcut পাতা](#shortcuts)। keymap বদলে থাকলে Android Studio তে **Settings → Keymap** এ খুঁজে দেখো।' },
     { tip: 'কখন print, কখন debugger? ছোট জিনিস এক নজরে দেখতে print ঠিক আছে। কিন্তু "কোথায় গোলমাল জানিই না" বা loop/recursion এর ভেতরে কী হচ্ছে বুঝতে হলে debugger অনেক দ্রুত।' },
   ],
   how: [
@@ -34,12 +44,14 @@ void main() {
     'Step Over মানে "একটা লাইন চালিয়ে আবার জমে যাও"। Step Into মানে লাইনের ভেতরে function থাকলে সেই function এর প্রথম লাইনে জমে যাও।',
   ],
   quiz: [
+    { q: 'Android Studio তে থেমে আছো। পরের লাইনে যেতে (function এর ভেতরে না ঢুকে) কোন চাবি?', opts: ['F10', 'F8', 'F7', 'F9'], a: 1, why: 'Android Studio / IntelliJ এ Step Over হলো **F8** (VS Code এ F10)। F7 ভেতরে ঢোকে, F9 পরের breakpoint পর্যন্ত চলে।' },
     { q: 'breakpoint দেওয়া লাইনে প্রোগ্রাম থামলে, ওই লাইনটা কি চলে গেছে?', opts: ['হ্যাঁ, চলার পরে থামে', 'না, চালানোর ঠিক আগে থামে', 'অর্ধেক চলে', 'breakpoint এ প্রোগ্রাম শেষ হয়ে যায়'], a: 1, why: 'হলুদ লাইন মানে "এটা এখন চলবে"। F10 চাপলে চলবে।' },
     { q: '{{print(sumTo(5));}} লাইনে থেমে আছো। sumTo এর ভেতরে কী হয় দেখতে কোনটা চাপবে?', opts: ['F10 (Step Over)', 'F11 (Step Into)', 'Shift + F5', 'F5'], a: 1, why: 'Step Into ফাংশনের ভেতরে ঢোকে। Step Over পুরো লাইন একবারে চালিয়ে দেয়।' },
     { q: '১০০০ বার ঘোরা loop এ শুধু {{i == 777}} এ থামতে চাও। কী করবে?', opts: ['১০০০ বার F5 চাপবো', 'conditional breakpoint: শর্ত i == 777', 'loop ছোট করে দেবো', 'সম্ভব না'], a: 1, why: 'breakpoint এ ডান ক্লিক → Edit Breakpoint → শর্ত।' },
   ],
   probs: [
     { l: 'e', q: 'উপরের {{sumTo}} কোডটা VS Code এ লেখো, loop এর লাইনে breakpoint দিয়ে Debug চালাও। F10 চেপে চেপে প্রতি ধাপে {{i}} আর {{sum}} এর মান খাতায় টেবিল করে লেখো।', ans: 'টেবিল (sum += i এর পরে): i=1 sum=1, i=2 sum=3, i=3 sum=6, i=4 sum=10। তারপর i=5 হলে {{5 < 5}} false, loop শেষ। return 10।\nঠিক করতে: {{i <= n}}। আবার Debug করে দেখো এবার i=5 এও ঢোকে, sum=15।' },
+    { l: 'e', q: 'Android Studio বা IntelliJ ব্যবহার করলে: একই {{sumTo}} কোডে breakpoint দিয়ে **Shift + F9** এ Debug চালাও, **F8** চেপে চেপে আগাও। Variables জানালা ছাড়াও কোডের লাইনের পাশে ধূসর রঙে মান দেখছো কি? সেখান থেকে {{i}} আর {{sum}} টেবিল করো।', ans: 'একই টেবিল: i=1 sum=1, i=2 sum=3, i=3 sum=6, i=4 sum=10, তারপর loop শেষ।\nAndroid Studio লাইনের পাশে ধূসর লেখায় (inline values) মান দেখায়, Variables জানালা না খুলেও। থামা অবস্থায় **Alt + F8** চেপে {{sum + 5}} লিখে দেখো: 15, মানে ঠিক উত্তর পেতে আর কতটা বাকি ছিল।' },
     { l: 'm', q: 'এই recursion Debug করো: {{return}} লাইনে breakpoint দাও, F5 দিয়ে বারবার Continue করো আর **CALL STACK** দেখো। কতগুলো {{fact}} একসাথে স্তূপে থাকে?', code: `int fact(int n) {
   if (n <= 1) return 1;
   return n * fact(n - 1);
@@ -105,7 +117,7 @@ i++; // i এক বাড়াও
 var readings = raw.where((r) => r != 0);` },
     { h: '৫. যন্ত্রকে কাজে লাগাও: format আর analyze' },
     { code: 'dart format .\ndart analyze', lang: 'bash', out: 'Formatted 3 files (1 changed) in 0.05 seconds.\nAnalyzing my_app...\n  info - bin/main.dart:3:7 - The value of the local variable \'temp\' isn\'t used. - unused_local_variable\n1 issue found.' },
-    { list: ['{{dart format .}}: সব ফাইল একই নিয়মে সাজায় (VS Code এ Shift + Alt + F এর কাজ)। স্পেস, লাইন ভাঙা নিয়ে আর ভাবতে হয় না।', '{{dart analyze}}: চালানো ছাড়াই কোড পড়ে সমস্যা খোঁজে: ব্যবহার না হওয়া variable, ভুল হওয়ার সম্ভাবনা আছে এমন জায়গা। error ঠিক করতেই হবে, warning আর info গুলোও দেখো।', 'VS Code এ **Problems** প্যানেল (Ctrl + Shift + M) এ এই একই তালিকা দেখা যায়।'] },
+    { list: ['{{dart format .}}: সব ফাইল একই নিয়মে সাজায় (VS Code এ format: Shift + Alt + F, Linux এ Ctrl + Shift + I)। স্পেস, লাইন ভাঙা নিয়ে আর ভাবতে হয় না।', '{{dart analyze}}: চালানো ছাড়াই কোড পড়ে সমস্যা খোঁজে: ব্যবহার না হওয়া variable, ভুল হওয়ার সম্ভাবনা আছে এমন জায়গা। error ঠিক করতেই হবে, warning আর info গুলোও দেখো।', 'VS Code এ **Problems** প্যানেল (Ctrl + Shift + M) এ এই একই তালিকা দেখা যায়।'] },
   ],
   how: [
     'কম্পিউটারের কাছে {{a}} আর {{marks}} একই, সে নাম পড়ে কিছু বোঝে না। নাম শুধু মানুষের জন্য। তাই ভালো নাম মানে মানুষের মাথার কাজ কমানো।',
@@ -119,7 +131,7 @@ var readings = raw.where((r) => r != 0);` },
   ],
   probs: [
     { l: 'e', q: 'এই variable গুলোর ভালো নাম দাও: {{n}} (ছাত্রের নাম), {{x}} (মোট দাম), {{f}} (পাওয়া গেছে কিনা), {{l}} (বইয়ের তালিকা)।', ans: '{{studentName}}, {{totalPrice}}, {{isFound}}, {{books}}।\nbool এর নাম প্রশ্নের মতো (is/has), list এর নাম বহুবচন (books, students)।' },
-    { l: 'e', q: 'নিচের কোডকে {{dart format}} এর মতো সাজাও (খাতায়, তারপর VS Code এ Shift + Alt + F দিয়ে মিলাও)।', code: `void main(){int x=5;if(x>3){print('বড়');}else{print('ছোট');}}`, sol: `void main() {
+    { l: 'e', q: 'নিচের কোডকে {{dart format}} এর মতো সাজাও (খাতায়, তারপর VS Code এর format দিয়ে মিলাও)।', code: `void main(){int x=5;if(x>3){print('বড়');}else{print('ছোট');}}`, sol: `void main() {
   int x = 5;
   if (x > 3) {
     print('বড়');
@@ -512,7 +524,7 @@ TOPICS.debugging.learn.push({ h: 'খেলা: ভুল খোঁজো' }, '�
 
 CARDS.push(
   { w: 'x', f: 'Debugger: থামার জায়গা দাও', b: 'লাইন নম্বরের বামে ক্লিক → লাল বিন্দু (breakpoint)\nতারপর F5 (Debug)' },
-  { w: 'x', f: 'Debugger: এক লাইন সামনে / function এর ভেতরে', b: 'F10 (Step Over)\nF11 (Step Into)' },
+  { w: 'x', f: 'Debugger: এক লাইন সামনে / function এর ভেতরে', b: 'VS Code: F10 / F11\nAndroid Studio: F8 / F7' },
   { w: 'x', f: 'কোড সাজাও আর সমস্যা খোঁজো (terminal)', b: 'dart format .\ndart analyze' },
   { w: 'x', f: 'variable / class এর নামের নিয়ম', b: 'variable, function: totalMarks (camelCase)\nclass: StudentCard (PascalCase)' },
   { w: 'x', f: 'নতুন প্রজেক্ট আর package যোগ', b: 'dart create my_app\ndart pub add http' },

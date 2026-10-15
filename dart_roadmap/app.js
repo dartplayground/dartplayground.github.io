@@ -15,7 +15,7 @@ const WEEKS = [
   { n: 11, title: 'JSON, Async, Stream, Isolate', ids: ['json', 'async', 'streams', 'isolates'] },
   { n: 12, title: 'Mini Project', ids: ['projects'] },
   // সপ্তাহের বাইরে: যার যখন দরকার পড়বে। n দিয়ে flashcard এর CARDS.w মেলে
-  { n: 'x', label: 'Extra', title: 'Terminal, Git, Debugger, Package, Flutter আর আরো: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'git', 'debugger', 'clean-code', 'packages', 'inside', 'dart-compile', 'errors', 'flutter-intro', 'gallery'] },
+  { n: 'x', label: 'Extra', title: 'Terminal, Git, Debugger, Package, Flutter আর আরো: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'git', 'debugger', 'shortcuts', 'clean-code', 'packages', 'inside', 'dart-compile', 'errors', 'flutter-intro', 'gallery'] },
 ];
 
 // সমস্যার লেখায় এই শব্দগুলো থাকলে "কিভাবে ভাববো?" প্যানেলে সূত্র দেখায়
@@ -1022,6 +1022,40 @@ const W = {
   },
 
   psLab(el) { W.termLab(el, 'ps'); },
+
+  // Shortcut পাতা: editor (VS Code / Android Studio / দুইটা) আর কম্পিউটার (Windows / Linux / Mac) বেছে নাও
+  shortcutLab(el) {
+    const K = TOPICS.shortcuts?.keys || [];
+    const CAT = { edit: 'সম্পাদনা', find: 'খোঁজা আর যাওয়া', code: 'কোডের সাহায্য', run: 'চালানো আর Debug', view: 'জানালা আর ফাইল', flutter: 'Flutter' };
+    const ED = { vs: 'VS Code', as: 'Android Studio / IntelliJ', both: 'দুইটা পাশাপাশি' }, OS = { 0: 'Windows', 1: 'Linux', 2: 'Mac' };
+    let pref = { ed: 'vs', os: /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? 2 : /Linux/.test(navigator.platform || '') ? 1 : 0 };
+    try { pref = { ...pref, ...JSON.parse(localStorage.getItem(KEY + '-sc') || '{}') }; } catch (e) {}
+    el.innerHTML = `<div class="widget sc"><div class="w-title">Shortcut</div>
+      <div class="sc-ctrl"><div class="w-row">${Object.entries(ED).map(([k, v]) => `<button class="chip" data-ed="${k}">${v}</button>`).join('')}</div>
+      <div class="w-row">${Object.entries(OS).map(([k, v]) => `<button class="chip" data-os="${k}">${v}</button>`).join('')}</div>
+      <input class="err-q" type="search" placeholder="খোঁজো: format, debug, ফাইল, comment ..." aria-label="shortcut খোঁজো"></div>
+      <div class="sc-body"></div></div>`;
+    const keys = s => s ? s.split(', ').map(g => g.split(' + ').map(k => `<kbd>${esc(k)}</kbd>`).join('<span class="sc-plus">+</span>')).join('<span class="sc-then">তারপর</span>') : '<span class="goal">ডিফল্ট নেই</span>';
+    const pick = (row, ed) => { const r = row[ed]; return r[pref.os] ?? r[0]; };
+    const draw = () => {
+      el.querySelectorAll('[data-ed]').forEach(b => b.classList.toggle('on', b.dataset.ed === pref.ed));
+      el.querySelectorAll('[data-os]').forEach(b => b.classList.toggle('on', +b.dataset.os === pref.os));
+      const v = $('.err-q', el).value.trim().toLowerCase(), both = pref.ed === 'both';
+      const rows = K.filter(r => !v || (r.t + ' ' + (r.tip || '') + ' ' + r.vs.join(' ') + ' ' + r.as.join(' ') + ' ' + CAT[r.c]).toLowerCase().includes(v));
+      $('.sc-body', el).innerHTML = Object.keys(CAT).map(c => {
+        const rs = rows.filter(r => r.c === c); if (!rs.length) return '';
+        return `<h4>${CAT[c]}</h4><div class="tablewrap"><table class="t sc-t"><thead><tr><th>কাজ</th>${both ? `<th>VS Code</th><th>Android Studio</th>` : `<th>${ED[pref.ed]} · ${OS[pref.os]}</th>`}</tr></thead><tbody>${rs.map(r => `<tr><td>${esc(r.t)}${r.tip ? `<br><small class="goal">${esc(r.tip)}</small>` : ''}</td>${both ? `<td>${keys(pick(r, 'vs'))}</td><td>${keys(pick(r, 'as'))}</td>` : `<td>${keys(pick(r, pref.ed))}</td>`}</tr>`).join('')}</tbody></table></div>`;
+      }).join('') || '<p class="goal">মেলেনি। অন্য শব্দে খোঁজো (ইংরেজি বা বাংলা)।</p>';
+    };
+    el.querySelector('.sc-ctrl').onclick = e => {
+      const b = e.target.closest('[data-ed],[data-os]'); if (!b) return;
+      if (b.dataset.ed) pref.ed = b.dataset.ed; else pref.os = +b.dataset.os;
+      try { localStorage.setItem(KEY + '-sc', JSON.stringify(pref)); } catch (e) {}
+      draw();
+    };
+    $('.err-q', el).oninput = draw;
+    draw();
+  },
 
   // কিবোর্ড: চিহ্নগুলো কোথায়, নাম কী, Dart এ কী কাজে। নিচে আসল কিবোর্ডে চাপার খেলা
   keyboard(el) {

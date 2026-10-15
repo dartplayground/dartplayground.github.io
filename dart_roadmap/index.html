@@ -241,6 +241,13 @@ table.t tr:last-child td { border-bottom: 0; }
 .gl-h b.mono { font-size: 1.05rem; color: var(--accent); }
 .gl-ex { justify-self: start; }
 .prob p.goal code { white-space: pre; display: inline-block; vertical-align: top; max-width: 100%; overflow-x: auto; }
+kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 6px; background: var(--surface); white-space: nowrap; color: var(--ink); }
+.sc-plus { color: var(--muted); margin: 0 3px; font-size: .8rem; }
+.sc-then { color: var(--muted); margin: 0 6px; font-size: .75rem; }
+.sc-ctrl { display: grid; gap: 8px; }
+.sc-body { display: grid; gap: 6px; }
+.sc-body h4 { margin: 10px 0 2px; font-family: var(--f-display); font-size: 1.02rem; }
+.sc-t td:first-child { width: 48%; }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -358,7 +365,7 @@ table.t tr:last-child td { border-bottom: 0; }
 }
 /* প্রিন্ট: শুধু পড়ার অংশ আর সমস্যা, খাতার মতো */
 @media print {
-  .bar, nav.side, .jump, .pfilter, .pact, .pager, .runbox, .tr-ctrl, [data-widget], .code-bar button, .callout .cta, .ladder, .gate { display: none !important; }
+  .bar, nav.side, .jump, .pfilter, .pact, .pager, .runbox, .tr-ctrl, [data-widget]:not([data-widget=shortcutLab]), .sc-ctrl, .code-bar button, .callout .cta, .ladder, .gate { display: none !important; }
   .app { display: block; } main { padding: 0; } body { background: #fff; color: #000; font-size: 12pt; }
   .prob, .q, .code, .note, .vis, .tablewrap, .trace { break-inside: avoid; }
   .prob { border: 1px solid #999; }
@@ -396,4 +403,5 @@ table.t tr:last-child td { border-bottom: 0; }
 <script src="content9.js"></script>
 <script src="content10.js"></script>
 <script src="content11.js"></script>
+<script src="content12.js"></script>
 <script src="app.js"></script>

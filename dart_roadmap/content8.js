@@ -208,7 +208,7 @@ void main() {
     { n: "Can't find '}' to match '{'", k: 'compile', msg: "Error: Can't find '}' to match '{'.", tags: 'brace bracket curly parenthesis ) ] match',
       m: 'একটা {{ { }} খুলেছ, কিন্তু বন্ধ করোনি। একই রকম মেসেজ আসে {{(}} বা {{[}} এর জন্য।',
       bad: `void main() {\n  if (true) {\n    print('হ্যাঁ');\n}`, good: `void main() {\n  if (true) {\n    print('হ্যাঁ');\n  }\n}`,
-      fix: 'VS Code এ একটা {{ { }} এর উপর cursor রাখলে তার জোড়াটা আলো হয়। **Shift + Alt + F** (format) চাপলে ভেতরের লাইনগুলো সরে, তখন কোথায় বন্ধ হয়নি বোঝা সহজ।' },
+      fix: 'VS Code এ একটা {{ { }} এর উপর cursor রাখলে তার জোড়াটা আলো হয়। **Shift + Alt + F** (Linux এ **Ctrl + Shift + I**, মানে format) চাপলে ভেতরের লাইনগুলো সরে, তখন কোথায় বন্ধ হয়নি বোঝা সহজ।' },
     { n: "Undefined name", k: 'compile', msg: "Error: Undefined name 'nmae'.", tags: 'undefined name variable not found spelling scope',
       m: 'এমন নাম ব্যবহার করেছ যেটা Dart চেনে না। হয় বানান ভুল, নয়তো variable টা অন্য ব্লকের ভেতরে বানানো (ওখানের বাইরে দেখা যায় না), নয়তো {{import}} করা হয়নি।',
       bad: `String name = 'রাফি';\nprint(nmae);`, good: `String name = 'রাফি';\nprint(name);`,

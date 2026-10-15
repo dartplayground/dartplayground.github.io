@@ -87,6 +87,19 @@
       el.querySelector('.kb-key.hot').click();
       ok(!/একটা রঙিন/.test(el.querySelector('.kb-info').textContent), 'keyboard: ক্লিকে তথ্য আসেনি');
 
+      // Shortcut: editor আর কম্পিউটার বদলালে চাবি বদলায়, খোঁজা কাজ করে
+      go('shortcuts'); el = $('[data-widget=shortcutLab]');
+      const fmtRow = () => [...el.querySelectorAll('.sc-t tr')].find(r => r.textContent.includes('(format)'));
+      el.querySelector('[data-ed=as]').click(); el.querySelector('[data-os="2"]').click();
+      ok(/Cmd\s*\+\s*Option\s*\+\s*L/.test(fmtRow()?.textContent || ''), 'shortcutLab: Android Studio + Mac এ format এর চাবি ভুল');
+      el.querySelector('[data-ed=vs]').click(); el.querySelector('[data-os="1"]').click();
+      ok(/Ctrl\s*\+\s*Shift\s*\+\s*I/.test(fmtRow()?.textContent || ''), 'shortcutLab: VS Code + Linux এ format এর চাবি ভুল');
+      el.querySelector('[data-ed=both]').click();
+      ok(fmtRow()?.querySelectorAll('td').length === 3, 'shortcutLab: পাশাপাশি দেখায়নি');
+      el.querySelector('.err-q').value = 'breakpoint'; el.querySelector('.err-q').dispatchEvent(new Event('input'));
+      ok(el.querySelectorAll('.sc-t tbody tr').length >= 1 && el.querySelectorAll('.sc-t tbody tr').length <= 3, 'shortcutLab: খোঁজা কাজ করেনি');
+      ok(TOPICS.shortcuts.keys.every(k => k.vs.length === 3 && k.as.length === 3 && k.vs[0] !== undefined && k.as[0] !== undefined), 'shortcuts: কোনো সারিতে চাবি কম');
+
       // ▶ চালাও: dart কোডে বোতাম, চাপলে DartPad iframe
       go('setup');
       const run = $('#main [data-act=run]');
