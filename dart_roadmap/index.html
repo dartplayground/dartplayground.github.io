@@ -180,6 +180,16 @@ table.t tr:last-child td { border-bottom: 0; }
 .widget .term-in input { flex: 1; min-width: 0; width: auto; background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; padding: 0 0 0 .5em; outline: none; caret-color: var(--hl-fn); }
 .term-mis ol { margin: 4px 0 0; padding-left: 1.4em; }
 .term-mis li.ok { color: var(--ok); text-decoration: line-through; }
+.err-q { width: 100% !important; font-family: var(--f-body) !important; padding: 8px 12px !important; }
+.err-list { display: grid; gap: 8px; }
+.err-card { border: 1px solid var(--line); border-radius: 10px; background: var(--surface2); padding: 8px 14px; }
+.err-card[open] { background: var(--surface); display: grid; gap: 10px; padding-bottom: 14px; }
+.err-card summary { cursor: pointer; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.err-card summary .lvl { margin-top: 0; }
+.err-msg { background: var(--bad-soft); color: var(--bad); border-radius: 8px; padding: 8px 12px; font-size: .84rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.err-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.err-pair > div { display: grid; gap: 4px; min-width: 0; }
+.err-pair small { color: var(--muted); font-size: .78rem; }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -319,4 +329,5 @@ table.t tr:last-child td { border-bottom: 0; }
 <script src="content5.js"></script>
 <script src="content6.js"></script>
 <script src="content7.js"></script>
+<script src="content8.js"></script>
 <script src="app.js"></script>

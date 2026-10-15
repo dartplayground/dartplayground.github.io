@@ -13,7 +13,7 @@ const WEEKS = [
   { n: 11, title: 'JSON, Async, Stream, Isolate', ids: ['json', 'async', 'streams', 'isolates'] },
   { n: 12, title: 'Mini Project', ids: ['projects'] },
   // সপ্তাহের বাইরে: যার যখন দরকার পড়বে। n দিয়ে flashcard এর CARDS.w মেলে
-  { n: 'x', label: 'Extra', title: 'Terminal আর Compile: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'dart-compile'] },
+  { n: 'x', label: 'Extra', title: 'Terminal, Compile আর Error অভিধান: দরকার মতো পড়ো', ids: ['terminal', 'powershell', 'dart-compile', 'errors'] },
 ];
 
 // সমস্যার লেখায় এই শব্দগুলো থাকলে "কিভাবে ভাববো?" প্যানেলে সূত্র দেখায়
@@ -941,6 +941,42 @@ const W = {
   },
 
   psLab(el) { W.termLab(el, 'ps'); },
+
+  // Error অভিধান: TOPICS.errors.dict থেকে কার্ড, উপরে খোঁজার বাক্স। পুরো Error মেসেজ পেস্ট করলেও মেলে
+  errLab(el) {
+    const D = TOPICS.errors?.dict || [];
+    const KIND = { run: ['চলার সময়', 'h'], compile: ['চালানোর আগে', 'm'] };
+    el.innerHTML = `<div class="widget"><div class="w-title">Error খোঁজো</div>
+      <input class="err-q" type="search" placeholder="Error মেসেজ বা নাম পেস্ট করো, যেমন: Null check operator" aria-label="Error খোঁজো">
+      <div class="w-row"><button class="chip on" data-k="all">সব (${bn(D.length)})</button><button class="chip" data-k="run">চলার সময়</button><button class="chip" data-k="compile">চালানোর আগে</button><span class="fc-tag" id="err-n"></span></div>
+      <div class="err-list"></div></div>`;
+    const list = $('.err-list', el), q = $('.err-q', el);
+    let kind = 'all';
+    const card = (e, open) => `<details class="err-card"${open ? ' open' : ''}><summary><b class="mono">${esc(e.n)}</b><span class="lvl ${KIND[e.k][1]}">${KIND[e.k][0]}</span></summary>
+      <div class="err-msg mono">${esc(e.msg)}</div>
+      <p><b>মানে:</b> ${fmt(e.m)}</p>
+      <div class="err-pair"><div><small>যে কোডে হয়</small>${codeBlock(e.bad)}</div><div><small>ঠিক করা</small>${codeBlock(e.good)}</div></div>
+      <p><b>কী করবে:</b> ${fmt(e.fix)}</p></details>`;
+    // খোঁজা: প্রশ্নের শব্দগুলো কয়টা মেলে তা দিয়ে সাজাও। ফাইলের path, লাইন নম্বর, ছোট শব্দ বাদ
+    const words = s => (s.toLowerCase().replace(/file:\/\/\S+|\S+\.dart(:\d+)*|#\d+/g, ' ').match(/[a-z_']{3,}|[\u0980-\u09ff]{2,}/g) || []).map(w => w.replace(/^'+|'+$/g, '')).filter(w => w.length > 2 && !STOP.has(w));
+    const STOP = new Set(['error', 'the', 'this', 'that', 'type', 'for', 'and', 'was', 'has', 'been', 'with', 'not', 'unhandled', 'exception', 'main', 'bin', 'dart']);
+    const hay = D.map(e => (e.n + ' ' + e.msg + ' ' + e.tags + ' ' + e.m).toLowerCase());
+    const draw = () => {
+      const ws = [...new Set(words(q.value))];
+      let rows = D.map((e, i) => ({ e, s: ws.reduce((a, w) => a + (hay[i].includes(w) ? (e.msg.toLowerCase().includes(w) ? 2 : 1) : 0), 0) }))
+        .filter(r => kind === 'all' || r.e.k === kind);
+      // সবচেয়ে ভালো মিলের অর্ধেকের কম হলে দেখিও না, নইলে সাধারণ শব্দে সব মিলে যায়
+      if (ws.length) { const best = Math.max(0, ...rows.map(r => r.s)); rows = rows.filter(r => r.s > 0 && r.s >= best / 2).sort((a, b) => b.s - a.s); }
+      $('#err-n', el).textContent = ws.length ? `${bn(rows.length)}টা মিলেছে` : '';
+      list.innerHTML = rows.length ? rows.map((r, i) => card(r.e, ws.length && i === 0)).join('') : '<p class="goal">কিছু মেলেনি। মেসেজের মূল অংশটা (Error এর নাম বা প্রথম লাইন) দিয়ে খোঁজো।</p>';
+    };
+    q.oninput = draw;
+    el.querySelector('.w-row').onclick = e => {
+      const b = e.target.closest('[data-k]'); if (!b) return;
+      kind = b.dataset.k; el.querySelectorAll('[data-k]').forEach(c => c.classList.toggle('on', c === b)); draw();
+    };
+    draw();
+  },
 };
 
 // ---------- router ----------
