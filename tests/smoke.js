@@ -154,6 +154,20 @@
       el = $('[data-widget=memLab]'); el.querySelector('[data-s="1"]').click();
       ok(el.querySelectorAll('.mem-obj').length === 2 && !el.querySelector('.mem-obj.gone'), 'memLab 2D: List.filled এ ২টা object (একটা ভেতরের) দেখায়নি, বা ভুল করে garbage');
 
+      // নাম যাচাই
+      go('naming'); el = $('[data-widget=nameLab]');
+      const nin = el.querySelector('.nl-in'), nk = el.querySelector('.nl-k');
+      const tryName = (n, k) => { nk.value = k; nin.value = n; nin.dispatchEvent(new Event('input', { bubbles: true })); return el.querySelector('.nl-res').textContent; };
+      ok(/totalPrice/.test(tryName('Total_Price', 'var')), 'nameLab: Total_Price এর পরামর্শ totalPrice না');
+      ok(/StudentCard/.test(tryName('student card', 'cls')), 'nameLab: class এর পরামর্শ StudentCard না');
+      ok(/student_card\.dart/.test(tryName('StudentCard', 'file')), 'nameLab: ফাইলের পরামর্শ student_card.dart না');
+      ok(/isPassed/.test(tryName('passed', 'bool')), 'nameLab: bool এ isPassed না');
+      ok(/বাংলা/.test(tryName('বয়স', 'var')), 'nameLab: বাংলা নামে সতর্ক করেনি');
+      ok(/keyword/.test(tryName('class', 'var')), 'nameLab: keyword ধরেনি');
+      ok(/চমৎকার/.test(tryName('studentCount', 'var')), 'nameLab: ভালো নামকে ভালো বলেনি');
+      const nq = el.querySelector('.nl-q'); nq.value = 'মোট'; nq.dispatchEvent(new Event('input', { bubbles: true }));
+      ok(el.querySelector('.nl-w[data-w="total"]'), 'nameLab: "মোট" খুঁজে total পায়নি');
+
       // ▶ চালাও: dart কোডে বোতাম, চাপলে DartPad iframe
       go('setup');
       const run = $('#main [data-act=run]');

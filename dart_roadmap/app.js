@@ -1,7 +1,7 @@
 // ---------- data: সপ্তাহ ভাগ ----------
 const WEEKS = [
   // কোড শুরুর আগের প্রস্তুতি: সূচিতে সবার উপরে। pos: 'start' মানে রোডম্যাপেও সপ্তাহ ১ এর আগে
-  { n: 's', label: 'শুরুর আগে', pos: 'start', title: 'কোড লেখার আগের প্রস্তুতি: কিবোর্ড, VS Code, ইংরেজি শব্দ, সাহায্য চাওয়া', ids: ['vscode', 'glossary', 'help'] },
+  { n: 's', label: 'শুরুর আগে', pos: 'start', title: 'কোড লেখার আগের প্রস্তুতি: কিবোর্ড, VS Code, ইংরেজি শব্দ, নাম রাখা, সাহায্য চাওয়া', ids: ['vscode', 'glossary', 'naming', 'help'] },
   { n: 1, title: 'ভাবতে শেখা, Output, Variable, String', ids: ['think', 'setup', 'variables', 'strings-basic'] },
   { n: 2, title: 'অপারেটর, Logic, Input আর Null', ids: ['operators', 'logic', 'conversion', 'null-safety'] },
   { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'nested-if', 'switch-ternary'] },
@@ -1046,6 +1046,87 @@ const W = {
   },
 
   psLab(el) { W.termLab(el, 'ps'); },
+
+  // নাম রাখার খেলা: (১) নাম যাচাই, (২) শব্দ থেকে নাম বানাও, (৩) বাংলা → ইংরেজি শব্দ খোঁজো। শব্দ আসে TOPICS[arg].words থেকে
+  nameLab(el) {
+    const WORDS = TOPICS[el.dataset.arg]?.words || [];
+    const KW = new Set('assert break case catch class const continue default do else enum extends false final finally for if in is new null rethrow return super switch this throw true try var void while with'.split(' '));
+    const VAGUE = new Set(['data', 'info', 'value', 'thing', 'stuff', 'temp', 'tmp', 'obj', 'item1', 'list1', 'foo', 'bar']);
+    const ABBR = { cnt: 'count', std: 'student', nm: 'name', num: 'number', tot: 'total', avg: 'average', msg: 'message', btn: 'button', usr: 'user', pwd: 'password', lst: 'list', idx: 'index', val: 'value', calc: 'calculate', str: 'text' };
+    const KIND = { var: 'variable', bool: 'bool (true/false)', list: 'List (অনেকগুলো)', func: 'function', cls: 'class', file: 'ফাইল' };
+    // যেকোনো লেখা থেকে শব্দ আলাদা: স্পেস, _, -, আর camelCase এর বড় অক্ষর
+    const words = t => t.replace(/\.dart$/, '').replace(/([a-z0-9])([A-Z])/g, '$1 $2').split(/[^A-Za-z0-9]+/).filter(Boolean).map(w => w.toLowerCase());
+    const cap = w => w[0].toUpperCase() + w.slice(1);
+    const fix = w => ABBR[w] || w;
+    const make = (ws, k) => {
+      if (!ws.length) return '';
+      ws = ws.map(fix);
+      if (/^\d/.test(ws[0])) ws = ['n' + ws[0]];
+      if (k === 'cls') return ws.map(cap).join('');
+      if (k === 'file') return ws.join('_') + '.dart';
+      if (k === 'bool' && !['is', 'has', 'can', 'should', 'was'].includes(ws[0])) ws = ['is', ...ws];
+      if (k === 'list' && !/s$/.test(ws[ws.length - 1])) ws = [...ws.slice(0, -1), ws[ws.length - 1] + 's'];
+      return ws[0] + ws.slice(1).map(cap).join('');
+    };
+    const check = (n, k) => {
+      const R = [];  // [ঠিক?, বাংলায় কথা]
+      if (!n) return [];
+      if (/[^\x00-\x7F]/.test(n)) return [[false, 'বাংলা (বা অন্য ভাষার) অক্ষর নামে চলে না, শুধু লেখা আর comment এ। নিচের "শব্দ খোঁজো" তে ইংরেজি শব্দ খুঁজে নাও।']];
+      if (k !== 'file') {
+        if (/^\d/.test(n)) R.push([false, 'সংখ্যা দিয়ে শুরু চলে না (Error)।']);
+        if (/\s/.test(n)) R.push([false, 'মাঝে স্পেস চলে না (Error)। শব্দগুলো জোড়া লাগাও।']);
+        if (/[^A-Za-z0-9_$]/.test(n.replace(/\s/g, ''))) R.push([false, 'শুধু a-z, A-Z, 0-9 আর _ চলে। - বা অন্য চিহ্ন চলে না (Error)।']);
+        if (KW.has(n)) R.push([false, `"${n}" Dart এর নিজের শব্দ (keyword), নাম হিসেবে চলে না (Error)।`]);
+        if (R.some(r => !r[0])) return R;
+        R.push([true, 'Dart এর নিয়ম মানে, চলবে।']);
+        const body = n.replace(/^_/, '');
+        if (k === 'cls') R.push(/^[A-Z][A-Za-z0-9]*$/.test(body) ? [true, 'বড় হাতে শুরু, শব্দের মাঝে _ নেই: UpperCamelCase ঠিক আছে।'] : [false, 'class এর নাম বড় হাতের অক্ষরে শুরু, শব্দের মাঝে _ ছাড়া: UpperCamelCase।']);
+        else if (/^[A-Z0-9_]+$/.test(body) && body.length > 1) R.push([false, 'সব বড় হাতের (MAX_SCORE ধরন)। Dart এ const ও lowerCamelCase: maxScore।']);
+        else R.push(/^[a-z][A-Za-z0-9]*$/.test(body) ? [true, 'ছোট হাতে শুরু, শব্দের মাঝে _ নেই: lowerCamelCase ঠিক আছে।'] : [false, /_/.test(body) ? 'মাঝে _ আছে। variable/function এ snake_case না, lowerCamelCase: totalPrice।' : 'ছোট হাতের অক্ষরে শুরু করো: lowerCamelCase।']);
+        if (n.startsWith('_')) R.push([true, 'শুরুতে _ মানে private: শুধু এই ফাইলের ভেতরে দেখা যাবে।']);
+        if (/\$/.test(n)) R.push([false, '$ চলে, কিন্তু Dart এ প্রায় কেউ ব্যবহার করে না। বাদ দাও।']);
+      } else {
+        R.push(/^[a-z][a-z0-9_]*\.dart$/.test(n) ? [true, 'সব ছোট হাতের, মাঝে _, শেষে .dart: snake_case ঠিক আছে।'] : [false, 'ফাইলের নাম সব ছোট হাতের অক্ষরে, শব্দের মাঝে _, শেষে .dart: bank_account.dart।']);
+      }
+      const ws = words(n), first = ws[0] || '';
+      if (ws.length === 1 && first.length === 1 && !'ijknxy'.includes(first)) R.push([false, 'এক অক্ষরের নাম দেখে কিছু বোঝা যায় না। (loop এর i, j চলে।)']);
+      ws.forEach(w => { if (ABBR[w]) R.push([false, `"${w}" অদ্ভুত ছোট রূপ। পুরো লেখো: "${ABBR[w]}"।`]); });
+      if (VAGUE.has(n.toLowerCase()) || ws.some(w => VAGUE.has(w))) R.push([false, 'অস্পষ্ট নাম (data, value, temp ...)। কিসের? আরো নির্দিষ্ট করো: studentData না, studentNames।']);
+      if (/\d$/.test(n) && k !== 'file') R.push([false, 'শেষে সংখ্যা (list1, list2)? পার্থক্যটা নামে লেখো: oldPrices, newPrices।']);
+      if (k === 'bool' && !['is', 'has', 'can', 'should', 'was'].includes(first)) R.push([false, 'bool এর নাম is / has / can দিয়ে শুরু করলে প্রশ্নের মতো পড়া যায়: isPassed, hasTicket।']);
+      if (k === 'list' && !/s$/.test(ws[ws.length - 1] || '')) R.push([false, 'অনেকগুলো জিনিসের তালিকা: নাম বহুবচন করো (শেষে s): students, prices।']);
+      if (k === 'func' && !WORDS.some(w => w.k === 'v' && w.en === first) && !['is', 'has', 'can', 'to', 'on'].includes(first)) R.push([false, `function কাজ করে, তাই কাজের শব্দ দিয়ে শুরু করো: calculate, find, print, add ... ("${first}" কাজের শব্দ কিনা দেখো)।`]);
+      return R;
+    };
+    el.innerHTML = `<div class="widget"><div class="w-title">নাম যাচাই</div>
+      <div class="w-row"><select class="nl-k">${Object.entries(KIND).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+      <input class="err-q nl-in" placeholder="একটা নাম লেখো, যেমন: Student_Name বা totalPrice" aria-label="নাম লেখো" style="flex:1;min-width:12em"></div>
+      <ul class="nl-res"></ul>
+      <div class="w-title" style="margin-top:6px">শব্দ খোঁজো (বাংলা → ইংরেজি)</div>
+      <input class="err-q nl-q" placeholder="বাংলায় লেখো: মোট, দাম, খোঁজো, খালি ..." aria-label="বাংলায় শব্দ খোঁজো">
+      <div class="nl-words"></div>
+      <p class="goal">শব্দে ক্লিক করলে উপরের বাক্সে যোগ হবে, আর সব রকম নামের রূপ দেখাবে।</p></div>`;
+    const draw = () => {
+      const n = $('.nl-in', el).value.trim(), k = $('.nl-k', el).value, R = check(n, k), ws = words(n.replace(/[^\x00-\x7F]/g, ' '));
+      const good = R.length && R.every(r => r[0]);
+      $('.nl-res', el).innerHTML = !n ? '<li class="goal">উপরে নাম লেখো, আর বাম পাশে বেছে নাও এটা কিসের নাম।</li>'
+        : R.map(([ok, t]) => `<li class="${ok ? 'nl-ok' : 'nl-no'}">${ok ? '✓' : '✗'} ${esc(t)}</li>`).join('') +
+          (ws.length ? `<li class="nl-sug">${good ? 'চমৎকার নাম!' : 'পরামর্শ'}: <code>${esc(make(ws, k))}</code>${k !== 'cls' && k !== 'file' ? `<br><small>অন্য রূপে: class <code>${esc(make(ws, 'cls'))}</code> · ফাইল <code>${esc(make(ws, 'file'))}</code> · bool <code>${esc(make(ws, 'bool'))}</code></small>` : ''}</li>` : '');
+      const q = $('.nl-q', el).value.trim().toLowerCase();
+      const rows = WORDS.filter(w => !q || w.bn.toLowerCase().includes(q) || w.en.toLowerCase().includes(q)).slice(0, q ? 40 : 24);
+      const KL = { n: 'জিনিস', v: 'কাজ', a: 'অবস্থা' };
+      $('.nl-words', el).innerHTML = rows.map(w => `<button class="nl-w" data-w="${esc(w.en)}"><span>${esc(w.bn)}</span><b class="mono">${esc(w.en)}</b><small>${KL[w.k]}</small></button>`).join('') || '<span class="goal">মেলেনি। অন্যভাবে লেখো, বা শব্দকোষ দেখো।</span>';
+    };
+    el.oninput = draw;
+    el.onclick = e => {
+      const w = e.target.closest('.nl-w'); if (!w) return;
+      const inp = $('.nl-in', el), cur = words(inp.value.replace(/[^\x00-\x7F]/g, ' '));
+      const kind = $('.nl-k', el).value;
+      inp.value = make([...cur, ...words(w.dataset.w)], kind === 'file' ? 'file' : kind === 'cls' ? 'cls' : 'var');
+      draw();
+    };
+    draw();
+  },
 
   // nested loop ঘোরা: বাইরের i একবার ঘুরলে ভেতরের j পুরোটা। grid এ কোন ঘরে আছি, output, মোট কতবার
   loopLab(el) {

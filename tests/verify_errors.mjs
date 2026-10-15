@@ -23,6 +23,7 @@ const FILE = {
   'Missing concrete implementation': 'c_abstract',
   'already declared in this scope': 'c_already_declared', "can't be referenced before it is declared": 'c_before_declared',
   "comparison expression can't be an operand": 'c_comparison_chain', "int can't be assigned to bool": 'c_int_to_bool',
+  'non-ASCII character in identifier': 'c_non_ascii', "can't be used as an identifier (keyword)": 'c_keyword',
 };
 
 let fail = 0;

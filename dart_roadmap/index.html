@@ -313,6 +313,14 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 .gd-c.cur { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .gd-sum { font-family: var(--f-mono); color: var(--warn); text-align: center; }
 @media (max-width: 860px) { .lp-grid, .gd-wrap { grid-template-columns: minmax(0, 1fr); } }
+.nl-res { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.nl-res li { padding: 4px 10px; border-radius: 8px; }
+.nl-ok { background: var(--ok-soft); color: var(--ok); } .nl-no { background: var(--bad-soft); color: var(--bad); }
+.nl-sug { background: var(--accent-soft); color: var(--ink); }
+.nl-words { display: flex; flex-wrap: wrap; gap: 6px; }
+.nl-w { display: grid; text-align: left; border: 1px solid var(--line); background: var(--surface2); border-radius: 8px; padding: 4px 10px; line-height: 1.3; }
+.nl-w b { color: var(--accent); } .nl-w small { color: var(--muted); font-size: .7rem; }
+.nl-w:hover { border-color: var(--accent); }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -472,4 +480,5 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 <script src="content13.js"></script>
 <script src="content14.js"></script>
 <script src="content15.js"></script>
+<script src="content16.js"></script>
 <script src="app.js"></script>
