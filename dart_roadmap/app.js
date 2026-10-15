@@ -4,10 +4,10 @@ const WEEKS = [
   { n: 's', label: 'শুরুর আগে', pos: 'start', title: 'কোড লেখার আগের প্রস্তুতি: কিবোর্ড, VS Code, ইংরেজি শব্দ, সাহায্য চাওয়া', ids: ['vscode', 'glossary', 'help'] },
   { n: 1, title: 'ভাবতে শেখা, Output, Variable, String', ids: ['think', 'setup', 'variables', 'strings-basic'] },
   { n: 2, title: 'অপারেটর, Logic, Input আর Null', ids: ['operators', 'logic', 'conversion', 'null-safety'] },
-  { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'switch-ternary'] },
+  { n: 3, title: 'সিদ্ধান্ত নেওয়া (Condition)', ids: ['if-else', 'nested-if', 'switch-ternary'] },
   { n: 4, title: 'Loop আর Bug খোঁজা', ids: ['for-loop', 'while-loop', 'nested-loop', 'debugging'] },
   { n: 5, title: 'Function, Scope আর Recursion', ids: ['functions-basic', 'parameters', 'scope', 'arrow-function', 'recursion'] },
-  { n: 6, title: 'List, Set, Map, Math আর Test', ids: ['list', 'set-map', 'math-date', 'testing'] },
+  { n: 6, title: 'List, 2D/3D List, Set, Map, Math আর Test', ids: ['list', 'list-2d', 'set-map', 'math-date', 'testing'] },
   { n: 7, title: 'Anonymous function আর Collection method', ids: ['anonymous', 'higher-order-closure', 'collection-methods'] },
   { n: 8, title: 'String, Algorithm আর Logic Gym', ids: ['string-problems', 'algorithms', 'logic-gym'] },
   { n: 9, title: 'OOP: Class থেকে Extension', ids: ['class-object', 'inheritance', 'oop-advanced'] },
@@ -1047,6 +1047,116 @@ const W = {
 
   psLab(el) { W.termLab(el, 'ps'); },
 
+  // nested loop ঘোরা: বাইরের i একবার ঘুরলে ভেতরের j পুরোটা। grid এ কোন ঘরে আছি, output, মোট কতবার
+  loopLab(el) {
+    let R = 3, C = 4, tri = false, k = 0, timer = null;
+    el.innerHTML = `<div class="widget"><div class="w-title">Nested loop ঘোরা</div>
+      <div class="w-row"><label>বাইরের (i) = <input class="lp-r" type="number" min="1" max="6" value="${R}"></label><label>ভেতরের (j) = <input class="lp-c" type="number" min="1" max="8" value="${C}"></label>
+      <label style="font-family:var(--f-body)"><input class="lp-t" type="checkbox" style="width:auto"> ভেতরের loop শুধু i পর্যন্ত (j &lt;= i)</label></div>
+      <div class="lp-grid"><div class="lp-code"></div><div><div class="lp-cells"></div><div class="lp-now"></div></div></div>
+      <div class="tr-box"><div class="label">OUTPUT</div><pre class="tr-out lp-out"></pre></div><p class="tr-note lp-note"></p>
+      <div class="tr-ctrl"><button class="btn" data-a="prev">← আগের ধাপ</button><button class="btn primary" data-a="next">পরের ধাপ →</button><button class="btn" data-a="play">▶ নিজে চলুক</button><button class="btn" data-a="reset">শুরু থেকে</button><span class="tr-count lp-count"></span></div></div>`;
+    const steps = () => { const s = []; for (let i = 1; i <= R; i++) for (let j = 1; j <= (tri ? i : C); j++) s.push([i, j]); return s; };
+    const draw = () => {
+      const S = steps(); k = Math.min(k, S.length); const [ci, cj] = S[k - 1] || [0, 0];
+      $('.lp-code', el).innerHTML = codeBlock(`for (int i = 1; i <= ${R}; i++) {\n  String line = '';\n  for (int j = 1; j <= ${tri ? 'i' : C}; j++) {\n    line += '($i,$j) ';\n  }\n  print(line);\n}`);
+      $('.lp-cells', el).innerHTML = `<div class="lp-tab" style="grid-template-columns: auto repeat(${C}, minmax(0, 1fr))"><span></span>${[...Array(C)].map((_, j) => `<b class="lp-h">j=${j + 1}</b>`).join('')}${[...Array(R)].map((_, i) => `<b class="lp-h">i=${i + 1}</b>${[...Array(C)].map((_, j) => {
+        const idx = S.findIndex(([a, b]) => a === i + 1 && b === j + 1), cls = idx < 0 ? 'off' : idx < k - 1 ? 'done' : idx === k - 1 ? 'cur' : '';
+        return `<span class="lp-c ${cls}">${idx < 0 ? '' : bn(idx + 1)}</span>`; }).join('')}`).join('')}</div>`;
+      const lines = []; for (let i = 1; i <= R; i++) { const row = S.slice(0, k).filter(([a]) => a === i); const full = row.length === (tri ? i : C); if (row.length && (full || i === ci)) lines.push(row.map(([a, b]) => `(${a},${b})`).join(' ') + (full ? '' : '  …')); }
+      $('.lp-out', el).textContent = lines.join('\n');
+      $('.lp-now', el).innerHTML = k ? `<span class="mono">i = <b>${ci}</b>, j = <b>${cj}</b></span>` : '<span class="goal">শুরু করতে "পরের ধাপ"</span>';
+      $('.lp-count', el).textContent = `ভেতরের কাজ চলেছে ${bn(k)} / ${bn(S.length)} বার`;
+      $('.lp-note', el).innerHTML = !k ? `মোট ${bn(S.length)} বার ঘুরবে: ${tri ? `1 + 2 + ... + ${R}` : `${R} × ${C}`}। খাতায় আগে হিসাব করো, তারপর মিলিয়ে দেখো।`
+        : cj === 1 ? `বাইরের loop এ <b>i = ${ci}</b> হলো। ভেতরের loop আবার <b>j = 1</b> থেকে শুরু।`
+        : cj === (tri ? ci : C) ? `ভেতরের loop এর শেষ ঘর (j = ${cj})। এরপর print, তারপর বাইরের i এক বাড়বে।` : `i একই থাকলো (${ci}), শুধু j বাড়লো।`;
+    };
+    const stop = () => { clearInterval(timer); timer = null; $('[data-a=play]', el).textContent = '▶ নিজে চলুক'; };
+    el.onclick = e => {
+      const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
+      const n = steps().length;
+      if (a === 'next' && k < n) k++; if (a === 'prev' && k > 0) k--; if (a === 'reset') { k = 0; stop(); }
+      if (a === 'play') { if (timer) stop(); else { if (k >= n) k = 0; e.target.textContent = '⏸ থামো'; timer = setInterval(() => { if (!el.isConnected || k >= steps().length) return stop(); k++; draw(); }, 700); } }
+      draw();
+    };
+    el.oninput = e => {
+      if (e.target.classList.contains('lp-r')) R = Math.max(1, Math.min(6, +e.target.value || 1));
+      if (e.target.classList.contains('lp-c')) C = Math.max(1, Math.min(8, +e.target.value || 1));
+      if (e.target.classList.contains('lp-t')) tri = e.target.checked;
+      k = 0; stop(); draw();
+    };
+    draw();
+  },
+
+  // সিদ্ধান্তের গাছ (nested if): মান বদলাও, কোন পথে গেল রঙিন। তালিকা আসে TOPICS[arg].tree থেকে
+  // tree: { inputs: [{k, label, type: 'range'|'bool', min, max, v}], root: {q, test(s), yes, no} বা পাতা {out} }
+  ifTree(el) {
+    const T = TOPICS[el.dataset.arg]?.tree; if (!T) return;
+    const st = Object.fromEntries(T.inputs.map(x => [x.k, x.v]));
+    el.innerHTML = `<div class="widget"><div class="w-title">সিদ্ধান্তের গাছ</div>
+      <div class="w-row">${T.inputs.map(x => x.type === 'bool' ? `<label><input type="checkbox" data-k="${x.k}" ${x.v ? 'checked' : ''} style="width:auto"> ${esc(x.label)}</label>` : `<label>${esc(x.label)} <input type="range" data-k="${x.k}" min="${x.min}" max="${x.max}" value="${x.v}" style="width:8em"><b class="mono" data-show="${x.k}">${x.v}</b></label>`).join('')}</div>
+      <div class="it-tree"></div><div class="it-code"></div><p class="tr-note it-note"></p></div>`;
+    const node = (n, on, d) => n.out !== undefined
+      ? `<div class="it-leaf ${on ? 'on' : ''}">${esc(n.out)}</div>`
+      : (() => { const t = n.test(st); return `<div class="it-node ${on ? 'on' : ''}"><div class="it-q"><code>if (${esc(n.q)})</code>${on ? ` → <b class="tf ${t ? 'y' : 'n'}">${t}</b>` : ''}</div><div class="it-kids"><div class="it-br"><small>true হলে</small>${node(n.yes, on && t, d + 1)}</div><div class="it-br"><small>false হলে (else)</small>${node(n.no, on && !t, d + 1)}</div></div></div>`; })();
+    const code = (n, ind) => n.out !== undefined ? `${ind}print('${n.out}');` : `${ind}if (${n.q}) {\n${code(n.yes, ind + '  ')}\n${ind}} else {\n${code(n.no, ind + '  ')}\n${ind}}`;
+    const path = n => { const out = []; while (n.out === undefined) { const t = n.test(st); out.push(`${n.q} → ${t}`); n = t ? n.yes : n.no; } return [out, n.out]; };
+    const draw = () => {
+      $('.it-tree', el).innerHTML = node(T.root, true, 0);
+      $('.it-code', el).innerHTML = codeBlock(T.inputs.map(x => x.type === 'bool' ? `bool ${x.k} = ${st[x.k]};` : `int ${x.k} = ${st[x.k]};`).join('\n') + '\n' + code(T.root, ''));
+      const [steps, out] = path(T.root);
+      $('.it-note', el).innerHTML = `পথ: ${steps.map(x => `<code>${esc(x)}</code>`).join(' → ')} → <b>${esc(out)}</b>`;
+    };
+    el.oninput = e => { const k = e.target.dataset.k; if (!k) return; st[k] = e.target.type === 'checkbox' ? e.target.checked : +e.target.value; const sh = el.querySelector(`[data-show="${k}"]`); if (sh) sh.textContent = st[k]; draw(); };
+    draw();
+  },
+
+  // 2D / 3D grid: ঘরে ক্লিক করলে grid[r][c], সারি/কলাম রঙিন। যোগফল, কর্ণ, transpose। 3D তে তলা বদলাও
+  gridLab(el) {
+    const three = el.dataset.arg === '3d';
+    let data = three ? [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]], [[13, 14, 15], [16, 17, 18]]] : [[5, 3, 8], [2, 9, 4], [7, 1, 6]];
+    let L = 0, sel = null, op = '';
+    const name = three ? 'building' : 'grid';
+    el.innerHTML = `<div class="widget"><div class="w-title">${three ? '3D List: বিল্ডিং[তলা][সারি][কলাম]' : '2D List: grid[সারি][কলাম]'}</div>
+      <p>${fmt(three ? 'প্রতিটা **তলা** একটা 2D grid। উপরে তলা বেছে নাও, তারপর ঘরে ক্লিক করো।' : 'যেকোনো ঘরে ক্লিক করো: সেই ঘরের ঠিকানা আর মান দেখাবে। নিচের বোতামগুলো দিয়ে loop এর কাজ দেখো।')}</p>
+      ${three ? `<div class="w-row gl-floors">${data.map((_, f) => `<button class="chip" data-f="${f}">তলা ${f}</button>`).join('')}</div>` : ''}
+      <div class="gd-wrap"><div class="gd"></div><div class="gd-info tr-note"></div></div>
+      ${three ? '' : `<div class="w-row"><button class="btn" data-op="row">প্রতিটা সারির যোগফল</button><button class="btn" data-op="col">প্রতিটা কলামের যোগফল</button><button class="btn" data-op="diag">কর্ণ (diagonal)</button><button class="btn" data-op="t">উল্টে দাও (transpose)</button><button class="btn" data-op="reset">আগের মতো</button></div>`}
+      <div class="gd-code"></div></div>`;
+    const g = () => three ? data[L] : data;
+    const draw = () => {
+      const G = g(), R = G.length, C = G[0].length;
+      el.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', +b.dataset.f === L));
+      const rs = op === 'row' ? G.map(r => r.reduce((a, b) => a + b, 0)) : null, cs = op === 'col' ? G[0].map((_, c) => G.reduce((a, r) => a + r[c], 0)) : null;
+      $('.gd', el).innerHTML = `<div class="gd-tab" style="grid-template-columns: auto repeat(${C}, minmax(0, 1fr))${rs ? ' auto' : ''}"><span></span>${G[0].map((_, c) => `<b class="lp-h">[${c}]</b>`).join('')}${rs ? '<b class="lp-h">যোগ</b>' : ''}${G.map((row, r) => `<b class="lp-h">[${r}]</b>${row.map((v, c) => {
+        const cls = sel && sel[0] === r && sel[1] === c ? 'cur' : sel && (sel[0] === r || sel[1] === c) ? 'line' : op === 'diag' && r === c ? 'cur' : '';
+        return `<button class="gd-c ${cls}" data-r="${r}" data-c="${c}">${v}</button>`; }).join('')}${rs ? `<b class="gd-sum">${rs[r]}</b>` : ''}`).join('')}${cs ? `<b class="lp-h">যোগ</b>${cs.map(v => `<b class="gd-sum">${v}</b>`).join('')}` : ''}</div>`;
+      const pre = three ? `${name}[${L}]` : name;
+      $('.gd-info', el).innerHTML = sel ? `<code>${pre}[${sel[0]}][${sel[1]}]</code> = <b>${G[sel[0]][sel[1]]}</b><br><small>${three ? `তলা ${L}, ` : ''}সারি ${sel[0]} (রঙিন সারি), কলাম ${sel[1]} (রঙিন কলাম)। সারির সংখ্যা <code>${pre}.length</code> = ${R}, কলামের <code>${pre}[0].length</code> = ${C}।</small>`
+        : `${three ? `<code>${name}.length</code> = ${data.length}টা তলা। ` : ''}একটা ঘরে ক্লিক করো।`;
+      const CODE = {
+        row: `for (int r = 0; r < ${name}.length; r++) {\n  int sum = 0;\n  for (int c = 0; c < ${name}[r].length; c++) {\n    sum += ${name}[r][c];\n  }\n  print('সারি $r: $sum');\n}`,
+        col: `for (int c = 0; c < ${name}[0].length; c++) {\n  int sum = 0;\n  for (int r = 0; r < ${name}.length; r++) {\n    sum += ${name}[r][c];   // c একই, r বদলায়\n  }\n  print('কলাম $c: $sum');\n}`,
+        diag: `int sum = 0;\nfor (int i = 0; i < ${name}.length; i++) {\n  sum += ${name}[i][i];   // সারি আর কলাম একই\n}\nprint(sum); // ${G.reduce((a, r, i) => a + (r[i] ?? 0), 0)}`,
+        t: `// সারি হয়ে যায় কলাম: নতুন[c][r] = পুরানো[r][c]\nvar t = [\n  for (int c = 0; c < ${name}[0].length; c++)\n    [for (int r = 0; r < ${name}.length; r++) ${name}[r][c]]\n];`,
+      };
+      $('.gd-code', el).innerHTML = three ? codeBlock(`var building = [\n${data.map(f => '  [' + f.map(r => `[${r.join(', ')}]`).join(', ') + ']').join(',\n')}\n];\nprint(building[${L}]${sel ? `[${sel[0]}][${sel[1]}]` : ''});  // ${sel ? data[L][sel[0]][sel[1]] : `[${data[L].map(r => `[${r.join(', ')}]`).join(', ')}]`}\n\nfor (var floor in building) {\n  for (var row in floor) {\n    for (var room in row) {\n      // প্রতিটা ঘর একবার করে\n    }\n  }\n}`)
+        : codeBlock(`var grid = [\n${data.map(r => `  [${r.join(', ')}],`).join('\n')}\n];\n${CODE[op] || `print(grid${sel ? `[${sel[0]}][${sel[1]}]` : '[1][2]'}); // ${sel ? G[sel[0]][sel[1]] : G[1][2]}`}`);
+    };
+    el.onclick = e => {
+      const c = e.target.closest('.gd-c'), f = e.target.closest('[data-f]'), o = e.target.closest('[data-op]');
+      if (c) sel = [+c.dataset.r, +c.dataset.c];
+      else if (f) { L = +f.dataset.f; sel = null; }
+      else if (o) {
+        sel = null; op = o.dataset.op;
+        if (op === 't') { data = data[0].map((_, c2) => data.map(r => r[c2])); }
+        if (op === 'reset') { data = [[5, 3, 8], [2, 9, 4], [7, 1, 6]]; op = ''; }
+      } else return;
+      draw();
+    };
+    draw();
+  },
+
   // && || ! খেলা: a, b, c বদলাও, সব হিসাব সাথে সাথে। একটা বেছে নিলে পুরো truth table, এখনকার সারি রঙিন
   logicLab(el) {
     const EX = [['a && b', (a, b) => a && b], ['a || b', (a, b) => a || b], ['!a', a => !a], ['!(a && b)', (a, b) => !(a && b)], ['!a || !b', (a, b) => !a || !b],
@@ -1124,14 +1234,16 @@ const W = {
       for (let k = 0; k <= i; k++) {
         const st = S.steps[k];
         gone.forEach(a => objs.delete(a));                      // আগের ধাপের garbage এখন মুছে গেছে
-        Object.entries(st.obj || {}).forEach(([a, [t, v]]) => objs.set(a, { t, v, ch: k === i }));
+        Object.entries(st.obj || {}).forEach(([a, [t, v, refs]]) => objs.set(a, { t, v, refs: refs || [], ch: k === i }));
         Object.entries(st.mut || {}).forEach(([a, v]) => { const o = objs.get(a); if (o) objs.set(a, { ...o, v, ch: k === i }); });
         Object.entries(st.ty || {}).forEach(([n, t]) => types[n] = t);
         Object.entries(st.set || {}).forEach(([n, a]) => { vars.delete(n); if (a !== undefined) vars.set(n, { a, ch: k === i }); });
         (st.del || []).forEach(n => vars.delete(n));
         if (st.p !== undefined) out.push(st.p);
         err = st.err || '';
-        const used = new Set([...vars.values()].map(v => v.a));
+        // নাম থেকে যাদের দেখা যায়, আর তাদের ভেতর থেকে যাদের দেখা যায় (list এর ভেতরের list), সবাই বেঁচে
+        const used = new Set([...vars.values()].map(v => v.a)), todo = [...used];
+        while (todo.length) for (const r of objs.get(todo.pop())?.refs || []) if (!used.has(r)) { used.add(r); todo.push(r); }
         gone = new Set([...objs.keys()].filter(a => !used.has(a)));
       }
       if (i < S.steps.length) { /* শেষ ধাপের garbage দেখাই, মুছি না */ }
@@ -1142,7 +1254,13 @@ const W = {
       const wrap = $('.mem-wrap', el), svg = $('.mem-svg', el); if (!wrap.isConnected) return;
       const r = wrap.getBoundingClientRect();
       svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`); svg.setAttribute('width', r.width); svg.setAttribute('height', r.height);
-      svg.innerHTML = [...el.querySelectorAll('.mem-var[data-to]')].map(v => {
+      const inner = [...el.querySelectorAll('.mem-obj[data-refs]')].flatMap(o => o.dataset.refs.split(' ').filter(Boolean).map((t, k) => {
+        const to = el.querySelector(`.mem-obj[data-addr="${t}"]`); if (!to) return '';
+        const a = o.getBoundingClientRect(), b = to.getBoundingClientRect(), x1 = a.right - r.left, y1 = a.top + 14 + k * 8 - r.top, x2 = b.right - r.left + 2, y2 = b.top + 14 - r.top, bulge = Math.max(x1, x2) + 26 + k * 6;
+        const c = color(t);
+        return `<path d="M${x1},${y1} C${bulge},${y1} ${bulge},${y2} ${x2},${y2}" fill="none" stroke="${c}" stroke-width="1.8" stroke-dasharray="5 3"/><circle cx="${x2}" cy="${y2}" r="3.5" fill="${c}"/>`;
+      })).join('');
+      svg.innerHTML = inner + [...el.querySelectorAll('.mem-var[data-to]')].map(v => {
         const t = el.querySelector(`.mem-obj[data-addr="${v.dataset.to}"]`); if (!t) return '';
         const a = v.getBoundingClientRect(), b = t.getBoundingClientRect();
         const x1 = a.right - r.left, y1 = a.top + a.height / 2 - r.top, x2 = b.left - r.left - 4, y2 = b.top + Math.min(b.height / 2, 22) - r.top, mx = (x1 + x2) / 2;
@@ -1157,7 +1275,7 @@ const W = {
       $('.mem-vars', el).innerHTML = [...vars].map(([n, v]) => `<div class="mem-var ${v.ch ? 'ch' : ''}" data-to="${esc(v.a)}" style="border-color:${color(v.a)}"><b class="mono">${esc(n)}</b>${types[n] ? `<small class="mono">${esc(types[n])}</small>` : ''}</div>`).join('') || '<span class="goal">এখনো কোনো নাম নেই</span>';
       const hasNull = [...vars.values()].some(v => v.a === 'null');
       $('.mem-objs', el).innerHTML = (hasNull ? `<div class="mem-obj null" data-addr="null"><small>null</small><b class="mono">কিছুই না</b></div>` : '') +
-        [...objs].map(([a, o]) => `<div class="mem-obj ${o.ch ? 'ch' : ''} ${gone.has(a) ? 'gone' : ''}" data-addr="${esc(a)}" style="border-color:${color(a)}"><small><span class="mono">${esc(a)}</span> · ${esc(o.t)}</small><b class="mono">${esc(o.v)}</b>${gone.has(a) ? '<small class="gone-l">কেউ দেখছে না → garbage, মুছে যাবে</small>' : ''}</div>`).join('');
+        [...objs].map(([a, o]) => `<div class="mem-obj ${o.ch ? 'ch' : ''} ${gone.has(a) ? 'gone' : ''}" data-addr="${esc(a)}" ${o.refs.length ? `data-refs="${esc(o.refs.join(' '))}"` : ''} style="border-color:${color(a)}"><small><span class="mono">${esc(a)}</span> · ${esc(o.t)}</small><b class="mono">${esc(o.v)}</b>${gone.has(a) ? '<small class="gone-l">কেউ দেখছে না → garbage, মুছে যাবে</small>' : ''}</div>`).join('');
       $('.mem-out', el).textContent = out.join('\n');
       const e = $('.mem-err', el); e.hidden = !err; e.innerHTML = err ? `<b>Error!</b> ${fmt(err)}` : '';
       $('.mem-note', el).innerHTML = fmt(st.n);

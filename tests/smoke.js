@@ -129,6 +129,31 @@
       go('null-safety'); el = $('[data-widget=memLab]');
       ok(el.querySelector('.mem-obj.null'), 'memLab null: null বাক্স দেখায়নি');
 
+      // nested loop ঘোরা: 3 × 4 = 12, ত্রিভুজে 1+2+3 = 6
+      go('nested-loop'); el = $('[data-widget=loopLab]');
+      ok(/১২/.test(el.querySelector('.lp-count').textContent), 'loopLab: মোট 12 বার দেখায়নি');
+      for (let k = 0; k < 5; k++) el.querySelector('[data-a=next]').click();
+      ok(/i = 2, j = 1/.test(el.querySelector('.lp-now').textContent), 'loopLab: ৫ম ধাপে i=2, j=1 হয়নি');
+      const tri = el.querySelector('.lp-t'); tri.checked = true; tri.dispatchEvent(new Event('input', { bubbles: true }));
+      ok(/৬/.test(el.querySelector('.lp-count').textContent), 'loopLab: ত্রিভুজে মোট 6 না');
+      // সিদ্ধান্তের গাছ
+      go('nested-if'); el = $('[data-widget=ifTree]');
+      ok(el.querySelector('.it-leaf.on')?.textContent === 'শুধু কার্টুন', 'ifTree: বয়স 15 এ "শুধু কার্টুন" না');
+      const tk = el.querySelector('[data-k=hasTicket]'); tk.checked = false; tk.dispatchEvent(new Event('input', { bubbles: true }));
+      ok(el.querySelector('.it-leaf.on')?.textContent === 'আগে টিকিট কাটো', 'ifTree: টিকিট ছাড়া পথ ভুল');
+      // 2D / 3D grid
+      go('list-2d'); const grids = document.querySelectorAll('[data-widget=gridLab]');
+      ok(grids.length === 2, 'gridLab: 2D আর 3D দুইটা নেই');
+      el = grids[0]; el.querySelector('.gd-c[data-r="1"][data-c="2"]').click();
+      ok(/grid\[1\]\[2\]\s*=\s*4/.test(el.querySelector('.gd-info').textContent), 'gridLab: grid[1][2] = 4 দেখায়নি');
+      el.querySelector('[data-op=row]').click();
+      ok([...el.querySelectorAll('.gd-sum')].map(x => x.textContent).join(',') === '16,15,14', 'gridLab: সারির যোগফল ভুল');
+      el = grids[1]; el.querySelector('[data-f="2"]').click(); el.querySelector('.gd-c[data-r="1"][data-c="0"]').click();
+      ok(/building\[2\]\[1\]\[0\]\s*=\s*16/.test(el.querySelector('.gd-info').textContent), 'gridLab 3D: building[2][1][0] = 16 দেখায়নি');
+      // মেমরি: List.filled এ একটাই ভেতরের list, garbage না
+      el = $('[data-widget=memLab]'); el.querySelector('[data-s="1"]').click();
+      ok(el.querySelectorAll('.mem-obj').length === 2 && !el.querySelector('.mem-obj.gone'), 'memLab 2D: List.filled এ ২টা object (একটা ভেতরের) দেখায়নি, বা ভুল করে garbage');
+
       // ▶ চালাও: dart কোডে বোতাম, চাপলে DartPad iframe
       go('setup');
       const run = $('#main [data-act=run]');

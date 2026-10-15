@@ -296,6 +296,29 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 .mem-obj .gone-l { color: var(--bad); }
 .mem-err { background: var(--bad-soft); color: var(--bad); border-radius: 8px; padding: 8px 12px; }
 @media (max-width: 860px) { .mem-grid { grid-template-columns: minmax(0, 1fr); } .if-row { grid-template-columns: minmax(0, 1fr) auto; } .if-row span { grid-column: 1 / -1; } }
+.mem-wrap { padding-right: 46px; }
+.lp-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.lp-tab, .gd-tab { display: grid; gap: 4px; align-items: center; }
+.lp-h { font-family: var(--f-mono); font-size: .72rem; color: var(--muted); text-align: center; }
+.lp-c { height: 2em; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; font-size: .78rem; color: var(--muted); }
+.lp-c.done { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.lp-c.cur { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.lp-c.off { background: transparent; border-style: dashed; opacity: .35; }
+.lp-now { margin-top: 8px; font-size: 1.05rem; }
+.it-tree { overflow-x: auto; padding-bottom: 4px; }
+.it-node { border: 1px dashed var(--line); border-radius: 10px; padding: 8px; display: grid; gap: 8px; min-width: max-content; opacity: .5; }
+.it-node.on { opacity: 1; border-style: solid; border-color: var(--accent); }
+.it-kids { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.it-br { display: grid; gap: 4px; align-content: start; }
+.it-br small { color: var(--muted); font-size: .72rem; }
+.it-leaf { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; opacity: .5; font-weight: 600; }
+.it-leaf.on { opacity: 1; background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.gd-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.gd-c { height: 2.6em; min-width: 2.6em; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-family: var(--f-mono); font-weight: 700; font-size: 1rem; }
+.gd-c.line { background: var(--teal-soft); border-color: var(--teal); }
+.gd-c.cur { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.gd-sum { font-family: var(--f-mono); color: var(--warn); text-align: center; }
+@media (max-width: 860px) { .lp-grid, .gd-wrap { grid-template-columns: minmax(0, 1fr); } }
 .pulse { animation: pulse .5s; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
 
@@ -443,8 +466,8 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/powershell.min.js"></script>
 <script>const TOPICS = {}, TRACES = {}, CARDS = [];</script>
 <script src="content1.js?v=6bb37459"></script>
-<script src="content2.js?v=585c2454"></script>
-<script src="content3.js?v=58069010"></script>
+<script src="content2.js?v=bc9c4e40"></script>
+<script src="content3.js?v=7689bc63"></script>
 <script src="content4.js?v=991710f4"></script>
 <script src="content5.js?v=47466842"></script>
 <script src="content6.js?v=d93e70c4"></script>
@@ -456,6 +479,7 @@ kbd { font-family: var(--f-mono); font-size: .82rem; padding: 1px 7px; border: 1
 <script src="content12.js?v=2142b3ce"></script>
 <script src="content13.js?v=186ace0d"></script>
 <script src="content14.js?v=04a723fd"></script>
-<script src="app.js?v=92fe938f"></script>
+<script src="content15.js?v=01b7aabb"></script>
+<script src="app.js?v=1fcfdb80"></script>
 </body>
 </html>
